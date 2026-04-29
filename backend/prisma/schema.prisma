@@ -1,13 +1,92 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Program {
+  id              Int      @id @default(autoincrement())
+
+  title           String
+  institution     String
+  city            String?
+  stateProvince   String?  @map("state_province")
+  country         String
+  type            String   // Master, Bootcamp
+
+  durationMonths  Int?     @map("duration_months")
+  tuitionFee      Float?   @map("tuition_fee")
+  currency        String?
+  feeBasis        String?  @map("fee_basis")
+
+  language        String?
+  specialization  String?  @db.Text
+  websiteUrl      String?  @map("website_url")
+  description     String?  @db.Text
+  notes           String?  @db.Text
+
+  bookmarks       Bookmark[]
+  consultations   Consultation[]
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("programs")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  clerkId        String   @unique @map("clerk_id")
+  email          String   @unique
+  firstName      String?  @map("first_name")
+  lastName       String?  @map("last_name")
+
+  bookmarks      Bookmark[]
+  consultations  Consultation[]
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  programId Int      @map("program_id")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, programId])
+  @@map("bookmarks")
+}
+
+model Consultation {
+  id                Int      @id @default(autoincrement())
+
+  userId            Int?     @map("user_id")
+  programId         Int?     @map("program_id")
+
+  fullName          String   @map("full_name")
+  email             String
+  phone             String?
+
+  preferredCountry  String?  @map("preferred_country")
+  studyLevel        String?  @map("study_level")
+  message           String?  @db.Text
+
+  status            String   @default("Pending") // Pending, Confirmed, Cancelled
+
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  program           Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("consultations")
 }
