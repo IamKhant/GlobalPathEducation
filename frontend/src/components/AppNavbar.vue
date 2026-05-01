@@ -98,7 +98,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth, UserButton } from '@clerk/vue'
 import { useUserStore } from '@/stores/user'
-import logo from '@/assets/logo/globalPathLogo.png'
+import logo from '@/assets/logo/globalPathLogoTransparent.png'
 
 const { isSignedIn } = useAuth()
 const userStore = useUserStore()
@@ -129,8 +129,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .gpe-navbar {
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.70) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   border-bottom: 1px solid #e5e7eb;
   padding: 0.4rem 0;
   min-height: 70px;
@@ -143,7 +144,7 @@ onBeforeUnmount(() => {
 }
 
 .gpe-navbar.is-scrolled {
-  background: rgba(255, 255, 255, 0.99);
+  background: rgba(255, 255, 255, 0.72) !important;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
 }
 
@@ -185,13 +186,14 @@ onBeforeUnmount(() => {
 }
 
 .nav-link {
-  color: #1e293b;
-  font-weight: 600;
+  color: #020617 !important;
+  font-weight: 700;
   border-radius: 999px;
   padding: 0.55rem 0.8rem !important;
   transition:
     color 0.2s ease,
     background-color 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.2s ease,
     width 0.25s ease,
     min-width 0.25s ease,
@@ -222,7 +224,15 @@ onBeforeUnmount(() => {
     margin 0.25s ease;
 }
 
-.nav-link:hover {
+.nav-link i,
+.nav-link > span,
+.nav-action-link i,
+.nav-action-link > span {
+  color: #020617;
+}
+
+.nav-link:hover,
+.nav-action-link:hover {
   color: #ffffff !important;
   background: #0f172a;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
@@ -230,33 +240,55 @@ onBeforeUnmount(() => {
 }
 
 .nav-link:hover i,
-.nav-link:hover span {
+.nav-link:hover span,
+.nav-action-link:hover i,
+.nav-action-link:hover span {
   color: #ffffff !important;
 }
 
 .nav-link.active,
 .nav-link.router-link-active,
-.nav-link.router-link-exact-active {
-  color: #ffffff;
-  background: #1d4ed8;
+.nav-link.router-link-exact-active,
+.nav-action-link.router-link-active,
+.nav-action-link.router-link-exact-active {
+  color: #0d1f33 !important;
+  background: #f4a41b;
+}
+
+.nav-link.active i,
+.nav-link.active span,
+.nav-link.router-link-active i,
+.nav-link.router-link-active span,
+.nav-link.router-link-exact-active i,
+.nav-link.router-link-exact-active span,
+.nav-action-link.router-link-active i,
+.nav-action-link.router-link-active span,
+.nav-action-link.router-link-exact-active i,
+.nav-action-link.router-link-exact-active span {
+  color: #0d1f33 !important;
 }
 
 .nav-link.active:hover,
 .nav-link.router-link-active:hover,
-.nav-link.router-link-exact-active:hover {
-  color: #ffffff !important;
-  background: #1e40af;
+.nav-link.router-link-exact-active:hover,
+.nav-action-link.router-link-active:hover,
+.nav-action-link.router-link-exact-active:hover {
+  color: #0d1f33 !important;
+  background: #f4a41b;
+  box-shadow: 0 8px 18px rgba(244, 164, 27, 0.2);
 }
 
 .nav-action-link {
-  color: #1e293b;
+  color: #020617 !important;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 999px;
   padding: 0.5rem 0.8rem;
   transition:
     color 0.2s ease,
     background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
     width 0.25s ease,
     padding 0.25s ease;
   display: inline-flex;
@@ -266,23 +298,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.nav-action-link:hover {
-  color: #ffffff !important;
-  background: #0f172a;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
-}
-
-.nav-action-link:hover i,
-.nav-action-link:hover span {
-  color: #ffffff !important;
-}
-
-.nav-action-link.router-link-active {
-  color: #ffffff;
-  background: #1d4ed8;
-}
-
-
 .language-pill {
   display: inline-flex;
   align-items: center;
@@ -290,14 +305,14 @@ onBeforeUnmount(() => {
   width: fit-content;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #6cd5ff;
   color: #334155;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .navbar-toggler {
-  color: #ffffff;
+  color: #0a82d3;
 }
 
 @media (min-width: 992px) {
