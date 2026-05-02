@@ -5,7 +5,7 @@
         <!-- Brand -->
         <div class="footer-brand">
           <h5 class="footer-logo">
-            Global<span>Path</span> Education
+            Global <span>Path - </span>Education
           </h5>
           <p>
             Helping students explore IT programs, compare study options, and plan their global education journey.
