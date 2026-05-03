@@ -446,29 +446,33 @@ onMounted(fetchFeaturedPrograms)
 
 .hero-visual {
   position: relative;
-  min-height: 520px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 600px;
+  border-radius: 34px;
+  overflow: hidden;
+  background: #dbeafe;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
 }
 
 .hero-visual::before {
   content: '';
   position: absolute;
-  width: 430px;
-  height: 430px;
-  border-radius: 999px;
-  background: rgba(186, 230, 253, 0.55);
-  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0) 55%
+    );
+  z-index: 1;
+  pointer-events: none;
 }
 
 .hero-visual img {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 560px);
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 24px 50px rgba(15, 23, 42, 0.12));
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .hero-content {
