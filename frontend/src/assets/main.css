@@ -1,0 +1,256 @@
+:root {
+  --gpe-primary: #1a3a5c;
+  --gpe-secondary: #2e7dc7;
+  --gpe-accent: #f4a41b;
+  --gpe-light: #f0f6ff;
+  --gpe-dark: #0d1f33;
+  --gpe-text: #2c3e50;
+  --gpe-muted: #6c757d;
+  --gpe-card-shadow: 0 2px 16px rgba(26,58,92,0.10);
+  --gpe-card-shadow-hover: 0 8px 32px rgba(26,58,92,0.18);
+  --gpe-radius: 14px;
+  --gpe-radius-sm: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--gpe-text);
+  background: #f8fafc;
+}
+
+/* Navbar */
+.gpe-navbar {
+  background: var(--gpe-primary) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.gpe-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: white !important;
+  letter-spacing: -0.3px;
+}
+.gpe-navbar .navbar-brand span {
+  color: var(--gpe-accent);
+}
+.gpe-navbar .nav-link {
+  color: rgba(255,255,255,0.85) !important;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.gpe-navbar .nav-link:hover,
+.gpe-navbar .nav-link.active { color: white !important; }
+
+/* Hero */
+.gpe-hero {
+  background: linear-gradient(135deg, var(--gpe-dark) 0%, var(--gpe-primary) 60%, #1e5fa0 100%);
+  color: white;
+  padding: 90px 0 70px;
+  position: relative;
+  overflow: hidden;
+}
+.gpe-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='28'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+.gpe-hero h1 { font-weight: 800; letter-spacing: -1px; }
+.gpe-hero .lead { opacity: 0.88; font-size: 1.15rem; }
+
+/* Cards */
+.program-card {
+  border: 1px solid #e8eef5;
+  border-radius: var(--gpe-radius);
+  box-shadow: var(--gpe-card-shadow);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  cursor: pointer;
+  background: white;
+  overflow: hidden;
+}
+.program-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--gpe-card-shadow-hover);
+}
+.program-card .card-body { padding: 1.4rem; }
+.program-card .card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gpe-primary);
+  line-height: 1.35;
+  margin-bottom: 0.3rem;
+}
+.program-card .card-institution {
+  font-size: 0.88rem;
+  color: var(--gpe-secondary);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.program-card .card-location {
+  font-size: 0.82rem;
+  color: var(--gpe-muted);
+}
+
+/* Badges */
+.badge-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.badge-master { background: #e8f0fe; color: #1a3a5c; }
+.badge-bootcamp { background: #fff3cd; color: #856404; }
+
+/* Tag chips */
+.spec-tag {
+  display: inline-block;
+  background: var(--gpe-light);
+  color: var(--gpe-secondary);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.73rem;
+  font-weight: 500;
+  margin: 2px 2px 2px 0;
+}
+
+/* Country flag emoji */
+.country-flag { font-size: 1.1rem; margin-right: 4px; }
+
+/* Buttons */
+.btn-gpe-primary {
+  background: var(--gpe-secondary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 10px 22px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-gpe-primary:hover { background: var(--gpe-primary); color: white; transform: translateY(-1px); }
+.btn-gpe-accent {
+  background: var(--gpe-accent);
+  color: var(--gpe-dark);
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  padding: 10px 22px;
+}
+.btn-gpe-accent:hover { background: #e0941a; color: var(--gpe-dark); }
+.btn-gpe-outline {
+  background: transparent;
+  color: var(--gpe-secondary);
+  border: 2px solid var(--gpe-secondary);
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 8px 20px;
+}
+.btn-gpe-outline:hover { background: var(--gpe-secondary); color: white; }
+
+/* Filter sidebar */
+.filter-sidebar {
+  background: white;
+  border: 1px solid #e8eef5;
+  border-radius: var(--gpe-radius);
+  padding: 1.5rem;
+  box-shadow: var(--gpe-card-shadow);
+}
+.filter-sidebar .filter-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--gpe-muted);
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+
+/* Dashboard cards */
+.stat-card {
+  background: white;
+  border: 1px solid #e8eef5;
+  border-radius: var(--gpe-radius);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--gpe-card-shadow);
+}
+.stat-card .stat-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.stat-card .stat-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--gpe-primary);
+  line-height: 1;
+}
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: var(--gpe-muted);
+  margin-top: 0.25rem;
+}
+
+/* Section heading */
+.section-heading {
+  font-weight: 800;
+  color: var(--gpe-primary);
+  letter-spacing: -0.5px;
+}
+.section-subheading {
+  color: var(--gpe-muted);
+  font-size: 1rem;
+}
+
+/* Tuition display */
+.tuition-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gpe-primary);
+}
+.tuition-basis { font-size: 0.8rem; color: var(--gpe-muted); }
+
+/* Bookmark button */
+.btn-bookmark {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: transform 0.15s;
+}
+.btn-bookmark:hover { transform: scale(1.2); }
+.btn-bookmark.bookmarked { color: var(--gpe-accent); }
+.btn-bookmark:not(.bookmarked) { color: #ccc; }
+
+/* Compare bar */
+.compare-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--gpe-primary);
+  color: white;
+  padding: 12px 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+}
+
+/* Page transitions */
+.page-enter-active, .page-leave-active { transition: opacity 0.2s ease; }
+.page-enter-from, .page-leave-to { opacity: 0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gpe-hero { padding: 60px 0 50px; }
+  .gpe-hero h1 { font-size: 2rem; }
+  .filter-sidebar { margin-bottom: 1.5rem; }
+}
+@media (max-width: 576px) {
+  .gpe-hero h1 { font-size: 1.7rem; }
+  .program-card .card-title { font-size: 0.95rem; }
+}
