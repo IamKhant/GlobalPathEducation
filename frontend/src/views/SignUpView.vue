@@ -22,12 +22,12 @@ import { SignUp } from '@clerk/vue'
 
 <style scoped>
 .auth-page {
-  min-height: 100vh;
-  padding: 4rem 1rem;
+  min-height: 70vh;
+  padding: 2.5rem 1rem 4rem;
   background:
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%), #f8fafc;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 

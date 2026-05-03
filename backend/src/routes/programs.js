@@ -9,6 +9,8 @@ router.get('/', async (req, res) => {
       search,
       country,
       type,
+      specialization,
+      duration,
       page = 1,
       limit = 12,
     } = req.query;
@@ -54,6 +56,19 @@ router.get('/', async (req, res) => {
 
     if (type) {
       where.type = type;
+    }
+
+    if (specialization) {
+      where.specialization = {
+        contains: specialization,
+        mode: 'insensitive',
+      };
+    }
+
+    if (duration) {
+      where.durationMonths = {
+        lte: Number.parseInt(duration, 10),
+      };
     }
 
     const [programs, total] = await Promise.all([
