@@ -7,9 +7,15 @@
       </RouterLink>
 
       <!-- Mobile toggle button -->
-      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-        data-bs-target="#globalPathNavbar" aria-controls="globalPathNavbar" aria-expanded="false"
-        aria-label="Toggle navigation">
+      <button
+        class="navbar-toggler border-0 shadow-none"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#globalPathNavbar"
+        aria-controls="globalPathNavbar"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
         <i class="bi bi-list fs-2"></i>
       </button>
 
@@ -36,7 +42,10 @@
               <i class="bi bi-bar-chart-steps"></i>
               <span>
                 Compare
-                <span v-if="userStore.compareList.length" class="badge rounded-pill bg-warning text-dark ms-1">
+                <span
+                  v-if="userStore.compareList.length"
+                  class="badge rounded-pill bg-warning text-dark ms-1"
+                >
                   {{ userStore.compareList.length }}
                 </span>
               </span>
@@ -62,7 +71,7 @@
             </RouterLink>
 
             <RouterLink to="/dashboard" class="nav-action-link" active-class="active">
-              <i class="bi bi-person-circle"></i>
+              <i class="bi bi-ui-checks"></i>
               <span>Dashboard</span>
             </RouterLink>
 
@@ -120,7 +129,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .gpe-navbar {
-  background: rgba(255, 255, 255, 0.70) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   border-bottom: 1px solid #e5e7eb;
@@ -207,8 +216,8 @@ onBeforeUnmount(() => {
   transition: font-size 0.25s ease;
 }
 
-.nav-link>span,
-.nav-action-link>span {
+.nav-link > span,
+.nav-action-link > span {
   transition:
     opacity 0.18s ease,
     max-width 0.25s ease,
@@ -216,9 +225,9 @@ onBeforeUnmount(() => {
 }
 
 .nav-link i,
-.nav-link>span,
+.nav-link > span,
 .nav-action-link i,
-.nav-action-link>span {
+.nav-action-link > span {
   color: #020617;
 }
 
@@ -333,8 +342,8 @@ onBeforeUnmount(() => {
     font-size: 1.1rem;
   }
 
-  .gpe-navbar.is-scrolled .nav-link>span,
-  .gpe-navbar.is-scrolled .nav-action-link>span {
+  .gpe-navbar.is-scrolled .nav-link > span,
+  .gpe-navbar.is-scrolled .nav-action-link > span {
     max-width: 0;
     opacity: 0;
     overflow: hidden;

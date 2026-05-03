@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useAuth } from '@clerk/vue'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -28,6 +28,14 @@ onMounted(async () => {
   await programStore.fetchMeta()
   if (isSignedIn.value) {
     await userStore.fetchBookmarks()
+  }
+})
+
+watch(isSignedIn, async (signedIn) => {
+  if (signedIn) {
+    await userStore.fetchBookmarks()
+  } else {
+    userStore.clearBookmarks()
   }
 })
 </script>

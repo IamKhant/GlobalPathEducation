@@ -21,21 +21,22 @@
                 Global study pathways for students
               </div>
 
-              <h1 class="hero-title">
-                Study abroad and build your future pathway
-              </h1>
+              <h1 class="hero-title">Study abroad and build your future pathway</h1>
 
               <div class="hero-line"></div>
 
               <p class="hero-subtitle">
-                Explore global study programs, compare destinations, and get consultation
-                support before choosing your next education journey.
+                Explore global study programs, compare destinations, and get consultation support
+                before choosing your next education journey.
               </p>
 
               <form class="hero-search" @submit.prevent="handleSearch">
                 <i class="bi bi-search"></i>
-                <input v-model="searchQuery" type="search"
-                  placeholder="Search programs, countries, or institutions..." />
+                <input
+                  v-model="searchQuery"
+                  type="search"
+                  placeholder="Search programs, countries, or institutions..."
+                />
                 <button type="submit">Search</button>
               </form>
 
@@ -77,8 +78,8 @@
             <span class="section-kicker">Global destinations</span>
             <h2>Explore study destinations</h2>
             <p>
-              Discover popular countries where students can explore study programs,
-              bootcamps, and international education pathways.
+              Discover popular countries where students can explore study programs, bootcamps, and
+              international education pathways.
             </p>
           </div>
 
@@ -88,17 +89,31 @@
           </RouterLink>
         </div>
 
-        <div id="countryCarousel" class="carousel slide country-carousel" data-bs-ride="carousel"
-          data-bs-interval="3500">
+        <div
+          id="countryCarousel"
+          class="carousel slide country-carousel"
+          data-bs-ride="carousel"
+          data-bs-interval="3500"
+        >
           <div class="carousel-indicators">
-            <button v-for="(country, index) in countries" :key="country.name" type="button"
-              data-bs-target="#countryCarousel" :data-bs-slide-to="index" :class="{ active: index === 0 }"
-              :aria-current="index === 0 ? 'true' : undefined" :aria-label="`Slide ${index + 1}`"></button>
+            <button
+              v-for="(country, index) in countries"
+              :key="country.name"
+              type="button"
+              data-bs-target="#countryCarousel"
+              :data-bs-slide-to="index"
+              :class="{ active: index === 0 }"
+              :aria-current="index === 0 ? 'true' : undefined"
+              :aria-label="`Slide ${index + 1}`"
+            ></button>
           </div>
 
           <div class="carousel-inner">
-            <div v-for="(country, index) in countries" :key="country.name"
-              :class="['carousel-item', { active: index === 0 }]">
+            <div
+              v-for="(country, index) in countries"
+              :key="country.name"
+              :class="['carousel-item', { active: index === 0 }]"
+            >
               <div class="country-slide">
                 <img :src="country.image" :alt="country.name" />
 
@@ -107,7 +122,10 @@
                   <h3>{{ country.name }}</h3>
                   <p>{{ country.description }}</p>
 
-                  <RouterLink :to="{ path: '/programs', query: { country: country.name } }" class="country-slide-btn">
+                  <RouterLink
+                    :to="{ path: '/programs', query: { country: country.name } }"
+                    class="country-slide-btn"
+                  >
                     Explore {{ country.name }}
                     <i class="bi bi-arrow-right"></i>
                   </RouterLink>
@@ -116,12 +134,22 @@
             </div>
           </div>
 
-          <button class="carousel-control-prev" type="button" data-bs-target="#countryCarousel" data-bs-slide="prev">
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#countryCarousel"
+            data-bs-slide="prev"
+          >
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
           </button>
 
-          <button class="carousel-control-next" type="button" data-bs-target="#countryCarousel" data-bs-slide="next">
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#countryCarousel"
+            data-bs-slide="next"
+          >
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
           </button>
@@ -129,8 +157,12 @@
 
         <!-- Small destination cards under slideshow -->
         <div class="country-mini-grid">
-          <RouterLink v-for="country in countries" :key="country.name"
-            :to="{ path: '/programs', query: { country: country.name } }" class="country-mini-card">
+          <RouterLink
+            v-for="country in countries"
+            :key="country.name"
+            :to="{ path: '/programs', query: { country: country.name } }"
+            class="country-mini-card"
+          >
             <img :src="country.image" :alt="country.name" />
             <span>{{ country.name }}</span>
           </RouterLink>
@@ -145,9 +177,7 @@
           <div>
             <span class="section-kicker">Explore options</span>
             <h2>Featured programs</h2>
-            <p>
-              Start with a few highlighted programs from the current database.
-            </p>
+            <p>Start with a few highlighted programs from the current database.</p>
           </div>
 
           <RouterLink to="/programs" class="view-all-link">
@@ -195,9 +225,7 @@
           </div>
         </div>
 
-        <div v-else class="empty-state">
-          No featured programs available yet.
-        </div>
+        <div v-else class="empty-state">No featured programs available yet.</div>
       </div>
     </section>
 
@@ -208,8 +236,8 @@
           <span class="section-kicker">Simple process</span>
           <h2>Plan your study journey in three steps</h2>
           <p>
-            GlobalPath Education helps students move from discovery to decision
-            with a clear and simple process.
+            GlobalPath Education helps students move from discovery to decision with a clear and
+            simple process.
           </p>
         </div>
 
@@ -235,9 +263,8 @@
             <span class="section-kicker">Why GlobalPath</span>
             <h2 class="why-title">A clearer way to compare study options</h2>
             <p class="why-text">
-              Instead of searching across many websites manually, students can explore
-              programs, compare basic details, save options, and request consultation
-              in one place.
+              Instead of searching across many websites manually, students can explore programs,
+              compare basic details, save options, and request consultation in one place.
             </p>
 
             <RouterLink to="/programs" class="btn btn-primary rounded-pill px-4">
@@ -266,8 +293,8 @@
             <span class="section-kicker light">Need guidance?</span>
             <h2>Not sure which study option fits you best?</h2>
             <p>
-              Book a consultation and get support comparing destinations, fees,
-              study levels, program types, and future opportunities.
+              Book a consultation and get support comparing destinations, fees, study levels,
+              program types, and future opportunities.
             </p>
           </div>
 
@@ -398,9 +425,7 @@ function handleSearch() {
 function shortDescription(description) {
   if (!description) return 'Program details will be available soon.'
 
-  return description.length > 110
-    ? `${description.slice(0, 110)}...`
-    : description
+  return description.length > 110 ? `${description.slice(0, 110)}...` : description
 }
 
 async function fetchFeaturedPrograms() {
@@ -457,12 +482,7 @@ onMounted(fetchFeaturedPrograms)
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0) 55%
-    );
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 55%);
   z-index: 1;
   pointer-events: none;
 }
@@ -693,11 +713,12 @@ onMounted(fetchFeaturedPrograms)
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background:
-    linear-gradient(90deg,
-      rgba(15, 23, 42, 0.88) 0%,
-      rgba(15, 23, 42, 0.58) 42%,
-      rgba(15, 23, 42, 0.16) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.88) 0%,
+    rgba(15, 23, 42, 0.58) 42%,
+    rgba(15, 23, 42, 0.16) 100%
+  );
   color: #ffffff;
 }
 
@@ -985,8 +1006,7 @@ onMounted(fetchFeaturedPrograms)
   padding: 2.5rem;
   border-radius: 30px;
   background:
-    radial-gradient(circle at top right, rgba(96, 165, 250, 0.25), transparent 32%),
-    #0f172a;
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.25), transparent 32%), #0f172a;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -1039,15 +1059,20 @@ onMounted(fetchFeaturedPrograms)
 
   .hero-visual {
     min-height: 360px;
+    border-radius: 26px;
   }
 
   .hero-visual::before {
-    width: 300px;
-    height: 300px;
+    inset: 0;
+    width: auto;
+    height: auto;
   }
 
   .hero-visual img {
-    width: min(100%, 420px);
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
+    object-position: center;
   }
 
   .section-heading {
@@ -1067,10 +1092,7 @@ onMounted(fetchFeaturedPrograms)
 
   .country-slide-overlay {
     padding: 2rem;
-    background:
-      linear-gradient(180deg,
-        rgba(15, 23, 42, 0.12) 0%,
-        rgba(15, 23, 42, 0.84) 100%);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(15, 23, 42, 0.84) 100%);
   }
 
   .country-mini-grid {
@@ -1105,6 +1127,18 @@ onMounted(fetchFeaturedPrograms)
 
   .hero-search input {
     padding: 0.65rem;
+  }
+
+  .hero-visual {
+    min-height: 300px;
+    border-radius: 22px;
+  }
+
+  .hero-visual img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    object-position: center;
   }
 
   .hero-mini-stats {
