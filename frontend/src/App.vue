@@ -1,11 +1,33 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div id="app">
+    <AppNavbar />
+    <RouterView v-slot="{ Component }">
+      <Transition name="page" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
+    <AppFooter />
+    <CompareBar v-if="userStore.compareList.length > 0" />
+  </div>
 </template>
 
-<style scoped></style>
+<script setup>
+import { onMounted } from 'vue'
+import { useAuth } from '@clerk/vue'
+import AppNavbar from '@/components/AppNavbar.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import CompareBar from '@/components/CompareBar.vue'
+import { useUserStore } from '@/stores/user'
+import { useProgramStore } from '@/stores/programs'
+
+const { isSignedIn } = useAuth()
+const userStore = useUserStore()
+const programStore = useProgramStore()
+
+onMounted(async () => {
+  await programStore.fetchMeta()
+  if (isSignedIn.value) {
+    await userStore.fetchBookmarks()
+  }
+})
+</script>
