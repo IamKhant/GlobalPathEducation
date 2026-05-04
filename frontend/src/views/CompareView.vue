@@ -121,10 +121,22 @@
 </template>
 
 <script setup>
+import { watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 
+const settingsStore = useSettingsStore()
 const userStore = useUserStore()
+
+watch(
+  () => [
+    settingsStore.selectedCurrency,
+    ...userStore.compareList.map((program) => program.currency),
+  ],
+  () => settingsStore.fetchRatesForPrograms(userStore.compareList),
+  { immediate: true },
+)
 
 const countryFlags = {
   Australia: '🇦🇺',
@@ -138,12 +150,7 @@ const countryFlags = {
 }
 
 function formatTuition(p) {
-  if (p.tuitionFee === 0) return 'Free'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: p.currency,
-    maximumFractionDigits: 0,
-  }).format(p.tuitionFee)
+  return settingsStore.formatMoney(p.tuitionFee, p.currency)
 }
 
 function feeBasisLabel(feeBasis) {

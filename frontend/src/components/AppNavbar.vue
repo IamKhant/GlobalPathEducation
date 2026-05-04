@@ -62,7 +62,49 @@
 
         <!-- Right side -->
         <div class="navbar-actions d-flex flex-column flex-lg-row align-items-lg-center gap-2">
-          <span class="language-pill">EN</span>
+          <div class="nav-settings d-flex align-items-center gap-2">
+            <span class="language-pill">EN</span>
+
+            <div class="currency-pill" :class="{ open: isCurrencyMenuOpen }">
+              <button
+                type="button"
+                class="currency-pill-button"
+                aria-label="Display currency"
+                :aria-expanded="isCurrencyMenuOpen"
+                @click="isCurrencyMenuOpen = !isCurrencyMenuOpen"
+              >
+                <i class="bi bi-currency-exchange"></i>
+                <span>{{ settingsStore.selectedCurrency }}</span>
+                <i class="bi bi-chevron-down currency-chevron"></i>
+              </button>
+
+              <div v-if="isCurrencyMenuOpen" class="currency-menu">
+                <input
+                  v-model="customCurrency"
+                  class="currency-input"
+                  maxlength="3"
+                  placeholder="Type code"
+                  aria-label="Type three-letter currency code"
+                  @input="customCurrency = customCurrency.toUpperCase().replace(/[^A-Z]/g, '')"
+                  @keydown.enter.prevent="applyCustomCurrency"
+                  @keydown.esc="closeCurrencyMenu"
+                />
+
+                <div class="currency-options">
+                  <button
+                    v-for="currency in settingsStore.supportedCurrencies"
+                    :key="currency"
+                    type="button"
+                    class="currency-option"
+                    :class="{ selected: currency === settingsStore.selectedCurrency }"
+                    @click="selectCurrency(currency)"
+                  >
+                    {{ currency }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <template v-if="isSignedIn">
             <RouterLink to="/bookmarks" class="nav-action-link" active-class="active">
@@ -97,15 +139,36 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth, UserButton } from '@clerk/vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import logo from '@/assets/logo/globalPathLogoTransparent.png'
 
 const { isSignedIn } = useAuth()
+const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
 const isScrolled = ref(false)
+const isCurrencyMenuOpen = ref(false)
+const customCurrency = ref('')
 const compactAt = 80
 const expandAt = 24
+
+function closeCurrencyMenu() {
+  isCurrencyMenuOpen.value = false
+  customCurrency.value = ''
+}
+
+function selectCurrency(currency) {
+  settingsStore.setCurrency(currency)
+  closeCurrencyMenu()
+}
+
+function applyCustomCurrency() {
+  if (customCurrency.value.length !== 3) return
+
+  settingsStore.setCurrency(customCurrency.value)
+  closeCurrencyMenu()
+}
 
 function handleScroll() {
   if (!isScrolled.value && window.scrollY > compactAt) {
@@ -298,7 +361,12 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.language-pill {
+.nav-settings {
+  flex-shrink: 0;
+}
+
+.language-pill,
+.currency-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -309,6 +377,97 @@ onBeforeUnmount(() => {
   color: #334155;
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+.currency-pill {
+  position: relative;
+  padding: 0;
+}
+
+.currency-pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 100%;
+  padding: 0.35rem 0.6rem 0.35rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.currency-pill-button i {
+  color: #334155;
+}
+
+.currency-pill-button span {
+  min-width: 2.2rem;
+}
+
+.currency-chevron {
+  font-size: 0.7rem;
+}
+
+.currency-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  width: 180px;
+  padding: 0.6rem;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+  z-index: 1040;
+}
+
+.currency-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  outline: 0;
+}
+
+.currency-input:focus {
+  border-color: #0a82d3;
+  box-shadow: 0 0 0 3px rgba(10, 130, 211, 0.12);
+}
+
+.currency-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.currency-option {
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.currency-option:hover,
+.currency-option.selected {
+  background: #f4a41b;
+  color: #0d1f33;
+}
+
+.currency-pill i {
+  font-size: 0.9rem;
 }
 
 .navbar-toggler {
@@ -453,7 +612,8 @@ onBeforeUnmount(() => {
     padding: 0.75rem 0.85rem;
   }
 
-  .language-pill {
+  .language-pill,
+  .currency-pill {
     margin-bottom: 0.25rem;
   }
 }
