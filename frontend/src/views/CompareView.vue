@@ -66,7 +66,7 @@
                   </span>
 
                   <span v-else-if="row.key === 'country'">
-                    {{ countryFlags[p.country] || '🌏' }} {{ p.country }}
+                    {{ getCountryFlag(p.country) }} {{ p.country }}
                   </span>
 
                   <span v-else-if="row.key === 'duration'"> {{ p.durationMonths }} months </span>
@@ -111,7 +111,7 @@
         </div>
 
         <div class="d-flex gap-2 mt-3 justify-content-end">
-          <button class="btn btn-outline-danger btn-sm" @click="userStore.clearCompare()">
+          <button class="btn btn-outline-danger btn-sm" @click="userStore.clearCompareList()">
             <i class="bi bi-trash me-1"></i>Clear All
           </button>
         </div>
@@ -125,6 +125,7 @@ import { watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+import { getCountryFlag } from '@/utils/countryFlags'
 
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
@@ -137,17 +138,6 @@ watch(
   () => settingsStore.fetchRatesForPrograms(userStore.compareList),
   { immediate: true },
 )
-
-const countryFlags = {
-  Australia: '🇦🇺',
-  Canada: '🇨🇦',
-  Germany: '🇩🇪',
-  'New Zealand': '🇳🇿',
-  Ireland: '🇮🇪',
-  Japan: '🇯🇵',
-  Netherlands: '🇳🇱',
-  Spain: '🇪🇸',
-}
 
 function formatTuition(p) {
   return settingsStore.formatMoney(p.tuitionFee, p.currency)

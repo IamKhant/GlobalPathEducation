@@ -1,118 +1,123 @@
 <template>
-  <div class="program-card h-100" @click="$router.push(`/programs/${program.id}`)">
-    <div class="card-body d-flex flex-column">
-      <!-- Header row -->
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <span
-          :class="['badge-type', program.type === 'Master' ? 'badge-master' : 'badge-bootcamp']"
+  <div class="compare-bar">
+    <div class="compare-bar-summary">
+      <i class="bi bi-bar-chart-steps"></i>
+      <span>{{ userStore.compareList.length }}/3 programs selected</span>
+    </div>
+
+    <div class="compare-bar-items">
+      <span v-for="program in userStore.compareList" :key="program.id" class="compare-chip">
+        {{ program.title }}
+        <button
+          type="button"
+          class="compare-chip-remove"
+          :aria-label="`Remove ${program.title} from compare`"
+          @click="userStore.removeFromCompare(program.id)"
         >
-          {{ program.type }}
-        </span>
-        <div class="d-flex gap-1" @click.stop>
-          <button
-            v-if="isSignedIn"
-            class="btn-bookmark"
-            :class="{ bookmarked: userStore.bookmarkedIds.has(program.id) }"
-            @click="userStore.toggleBookmark(program)"
-            :title="userStore.bookmarkedIds.has(program.id) ? 'Remove bookmark' : 'Save program'"
-          >
-            <i
-              :class="
-                userStore.bookmarkedIds.has(program.id) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'
-              "
-            ></i>
-          </button>
-          <button
-            class="btn-bookmark"
-            :class="{ bookmarked: isInCompare }"
-            @click="toggleCompare"
-            title="Compare"
-          >
-            <i class="bi bi-bar-chart-steps"></i>
-          </button>
-        </div>
-      </div>
+          <i class="bi bi-x"></i>
+        </button>
+      </span>
+    </div>
 
-      <!-- Title -->
-      <h6 class="card-title mb-1">{{ program.title }}</h6>
-      <div class="card-institution mb-1">{{ program.institution }}</div>
-      <div class="card-location mb-3">
-        <span class="country-flag">{{ countryFlag }}</span>
-        {{ program.city }}, {{ program.country }}
-      </div>
-
-      <!-- Specs tags -->
-      <div class="mb-3 flex-grow-1">
-        <span v-for="tag in specTags" :key="tag" class="spec-tag">{{ tag }}</span>
-      </div>
-
-      <!-- Footer -->
-      <div class="d-flex justify-content-between align-items-end pt-2 border-top">
-        <div>
-          <div class="tuition-amount">{{ formattedTuition }}</div>
-          <div class="tuition-basis">{{ feeBasisLabel }}</div>
-        </div>
-        <div class="text-end">
-          <div class="small fw-semibold text-secondary">{{ program.durationMonths }} months</div>
-          <div class="small text-muted">{{ program.language }}</div>
-        </div>
-      </div>
+    <div class="compare-bar-actions">
+      <RouterLink to="/compare" class="btn btn-sm btn-warning fw-bold">Compare</RouterLink>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-light"
+        @click="userStore.clearCompareList()"
+      >
+        Clear
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useAuth } from '@clerk/vue'
+import { RouterLink } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
-const props = defineProps({ program: { type: Object, required: true } })
-const { isSignedIn } = useAuth()
 const userStore = useUserStore()
+</script>
 
-const isInCompare = computed(() => userStore.compareList.some((p) => p.id === props.program.id))
+<style scoped>
+.compare-bar {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  background: #0d1f33;
+  color: #ffffff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.24);
+}
 
-function toggleCompare() {
-  if (isInCompare.value) {
-    userStore.removeFromCompare(props.program.id)
-  } else {
-    userStore.addToCompare(props.program)
+.compare-bar-summary,
+.compare-bar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+.compare-bar-summary {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.compare-bar-items {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 240px;
+  padding: 0.35rem 0.45rem 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.compare-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  line-height: 1;
+}
+
+.compare-chip-remove:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@media (max-width: 767.98px) {
+  .compare-bar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .compare-bar-actions {
+    justify-content: flex-end;
   }
 }
-
-const countryFlags = {
-  Australia: '🇦🇺',
-  Canada: '🇨🇦',
-  Germany: '🇩🇪',
-  'New Zealand': '🇳🇿',
-  Ireland: '🇮🇪',
-  Japan: '🇯🇵',
-  Netherlands: '🇳🇱',
-  Spain: '🇪🇸',
-}
-const countryFlag = computed(() => countryFlags[props.program.country] || '🌏')
-
-const specTags = computed(() => {
-  const tags =
-    props.program.specialization
-      ?.split(',')
-      .map((t) => t.trim())
-      .filter(Boolean) || []
-  return tags.slice(0, 3)
-})
-
-const formattedTuition = computed(() => {
-  const { tuitionFee, currency } = props.program
-  if (tuitionFee === 0) return 'Free'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(tuitionFee)
-})
-
-const feeBasisLabel = computed(() => {
-  const map = { annual: '/ year', total: 'total', per_term: '/ term' }
-  return map[props.program.feeBasis] || ''
-})
-</script>
+</style>

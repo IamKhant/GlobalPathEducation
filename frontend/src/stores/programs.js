@@ -11,6 +11,7 @@ export const useProgramStore = defineStore('programs', () => {
     type: '',
     specialization: '',
     duration: '',
+    sort: '',
   })
   const meta = ref({
     countries: [],
@@ -100,6 +101,7 @@ export const useProgramStore = defineStore('programs', () => {
       type: '',
       specialization: '',
       duration: '',
+      sort: '',
     }
   }
 

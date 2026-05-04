@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
       type,
       specialization,
       duration,
+      sort,
       page = 1,
       limit = 12,
     } = req.query;
@@ -71,12 +72,30 @@ router.get('/', async (req, res) => {
       };
     }
 
+    let orderBy = {
+      title: 'asc',
+    };
+
+    if (sort === 'tuition_asc') {
+      orderBy = { tuitionFee: 'asc' };
+    }
+
+    if (sort === 'tuition_desc') {
+      orderBy = { tuitionFee: 'desc' };
+    }
+
+    if (sort === 'duration_asc') {
+      orderBy = { durationMonths: 'asc' };
+    }
+
+    if (sort === 'duration_desc') {
+      orderBy = { durationMonths: 'desc' };
+    }
+
     const [programs, total] = await Promise.all([
       req.prisma.program.findMany({
         where,
-        orderBy: {
-          title: 'asc',
-        },
+        orderBy,
         skip,
         take: limitNumber,
       }),

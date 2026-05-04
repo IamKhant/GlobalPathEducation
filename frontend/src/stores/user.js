@@ -2,9 +2,25 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/api'
 
+const COMPARE_STORAGE_KEY = 'gpe-compare-list'
+
 export const useUserStore = defineStore('user', () => {
   const bookmarks = ref([])
-  const compareList = ref([])
+  const compareList = ref(loadCompareList())
+
+  function loadCompareList() {
+    try {
+      const saved = localStorage.getItem(COMPARE_STORAGE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch (error) {
+      console.error(error)
+      return []
+    }
+  }
+
+  function saveCompareList() {
+    localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(compareList.value))
+  }
 
   const bookmarkedIds = computed(() => {
     return new Set(bookmarks.value.map((bookmark) => bookmark.program?.id || bookmark.id))
@@ -22,7 +38,9 @@ export const useUserStore = defineStore('user', () => {
 
   async function toggleBookmark(program) {
     if (bookmarkedIds.value.has(program.id)) {
-      bookmarks.value = bookmarks.value.filter((item) => (item.program?.id || item.id) !== program.id)
+      bookmarks.value = bookmarks.value.filter(
+        (item) => (item.program?.id || item.id) !== program.id,
+      )
 
       try {
         await api.delete(`/api/bookmarks/${program.id}`)
@@ -36,12 +54,15 @@ export const useUserStore = defineStore('user', () => {
         const { data } = await api.post('/api/bookmarks', {
           programId: program.id,
         })
+
         bookmarks.value = bookmarks.value.map((item) => {
           return item.id === `pending-${program.id}` ? data : item
         })
       } catch (error) {
         console.error(error)
-        bookmarks.value = bookmarks.value.filter((item) => (item.program?.id || item.id) !== program.id)
+        bookmarks.value = bookmarks.value.filter(
+          (item) => (item.program?.id || item.id) !== program.id,
+        )
       }
     }
   }
@@ -51,19 +72,27 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function addToCompare(program) {
-    const alreadyAdded = compareList.value.some((item) => item.id === program.id)
+    const alreadyExists = compareList.value.some((item) => item.id === program.id)
 
-    if (!alreadyAdded && compareList.value.length < 3) {
-      compareList.value.push(program)
+    if (alreadyExists) return
+
+    if (compareList.value.length >= 3) {
+      alert('You can compare up to 3 programs at a time.')
+      return
     }
+
+    compareList.value.push(program)
+    saveCompareList()
   }
 
   function removeFromCompare(programId) {
-    compareList.value = compareList.value.filter((program) => program.id !== programId)
+    compareList.value = compareList.value.filter((item) => item.id !== programId)
+    saveCompareList()
   }
 
-  function clearCompare() {
+  function clearCompareList() {
     compareList.value = []
+    saveCompareList()
   }
 
   return {
@@ -75,6 +104,6 @@ export const useUserStore = defineStore('user', () => {
     clearBookmarks,
     addToCompare,
     removeFromCompare,
-    clearCompare,
+    clearCompareList,
   }
 })
