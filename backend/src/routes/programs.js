@@ -1,4 +1,6 @@
 const express = require('express');
+const { requireApiAuth } = require('../middleware/auth');
+const { normalizeTargetLang, translateTexts } = require('../services/deepl');
 
 const router = express.Router();
 
@@ -150,6 +152,113 @@ router.get('/meta', async (req, res) => {
     console.error(error);
     res.status(500).json({
       message: 'Failed to fetch filter options',
+    });
+  }
+});
+
+// POST /api/programs/:id/translation
+router.post('/:id/translation', requireApiAuth, async (req, res) => {
+  try {
+    const id = Number.parseInt(req.params.id, 10);
+    const targetLang = normalizeTargetLang(req.body.targetLang || req.body.locale);
+    const refresh = req.body.refresh === true;
+
+    if (!targetLang) {
+      return res.status(400).json({
+        message: 'targetLang is required',
+      });
+    }
+
+    const program = await req.prisma.program.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        translations: {
+          where: {
+            locale: targetLang,
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      return res.status(404).json({
+        message: 'Program not found',
+      });
+    }
+
+    if (!refresh && program.translations[0]) {
+      return res.json(program.translations[0]);
+    }
+
+    const [title, specialization, description] = await translateTexts(
+      [program.title, program.specialization, program.description],
+      targetLang,
+    );
+
+    const translation = await req.prisma.programTranslation.upsert({
+      where: {
+        programId_locale: {
+          programId: program.id,
+          locale: targetLang,
+        },
+      },
+      update: {
+        title,
+        specialization,
+        description,
+      },
+      create: {
+        programId: program.id,
+        locale: targetLang,
+        title,
+        specialization,
+        description,
+      },
+    });
+
+    res.json(translation);
+  } catch (error) {
+    console.error(error);
+    res.status(error.statusCode || 500).json({
+      message: error.message || 'Failed to translate program',
+    });
+  }
+});
+
+// GET /api/programs/:id/translation?locale=DE
+router.get('/:id/translation', async (req, res) => {
+  try {
+    const id = Number.parseInt(req.params.id, 10);
+    const locale = normalizeTargetLang(req.query.locale || req.query.targetLang);
+
+    if (!locale) {
+      return res.status(400).json({
+        message: 'locale is required',
+      });
+    }
+
+    const translation = await req.prisma.programTranslation.findUnique({
+      where: {
+        programId_locale: {
+          programId: id,
+          locale,
+        },
+      },
+    });
+
+    if (!translation) {
+      return res.status(404).json({
+        message: 'Translation not found',
+      });
+    }
+
+    res.json(translation);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Failed to fetch translation',
     });
   }
 });

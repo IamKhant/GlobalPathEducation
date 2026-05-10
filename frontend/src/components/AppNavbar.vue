@@ -1,5 +1,5 @@
 <template>
-  <nav :class="['navbar navbar-expand-lg gpe-navbar sticky-top', { 'is-scrolled': isScrolled }]">
+  <nav :class="['navbar navbar-expand-custom gpe-navbar sticky-top', { 'is-scrolled': isScrolled }]">
     <div class="container-fluid nav-shell">
       <!-- Logo -->
       <RouterLink class="navbar-brand d-flex align-items-center" to="/">
@@ -14,34 +14,34 @@
         data-bs-target="#globalPathNavbar"
         aria-controls="globalPathNavbar"
         aria-expanded="false"
-        aria-label="Toggle navigation"
+        :aria-label="settingsStore.t('nav.toggle')"
       >
         <i class="bi bi-list fs-2"></i>
       </button>
 
       <!-- Collapsible content -->
       <div id="globalPathNavbar" class="collapse navbar-collapse">
-        <!-- Center links -->
-        <ul class="navbar-nav nav-center mx-lg-auto mb-3 mb-lg-0">
+        <!-- Primary links -->
+        <ul class="navbar-nav nav-center mb-3 mb-lg-0">
           <li class="nav-item">
             <RouterLink class="nav-link" to="/" active-class="active">
               <i class="bi bi-house-door"></i>
-              <span>Home</span>
+              <span>{{ settingsStore.t('nav.home') }}</span>
             </RouterLink>
           </li>
 
           <li class="nav-item">
             <RouterLink class="nav-link" to="/programs" active-class="active">
               <i class="bi bi-mortarboard"></i>
-              <span>Programs</span>
+              <span>{{ settingsStore.t('nav.programs') }}</span>
             </RouterLink>
           </li>
 
-          <li class="nav-item">
+          <li v-if="!userStore.isStaff" class="nav-item">
             <RouterLink class="nav-link" to="/compare" active-class="active">
               <i class="bi bi-bar-chart-steps"></i>
               <span>
-                Compare
+                {{ settingsStore.t('nav.compare') }}
                 <span
                   v-if="userStore.compareList.length"
                   class="badge rounded-pill bg-warning text-dark ms-1"
@@ -52,10 +52,10 @@
             </RouterLink>
           </li>
 
-          <li class="nav-item">
+          <li v-if="!userStore.isStaff" class="nav-item">
             <RouterLink class="nav-link" to="/consult" active-class="active">
               <i class="bi bi-calendar-check"></i>
-              <span>Consultation</span>
+              <span>{{ settingsStore.t('nav.consultation') }}</span>
             </RouterLink>
           </li>
         </ul>
@@ -63,31 +63,57 @@
         <!-- Right side -->
         <div class="navbar-actions d-flex flex-column flex-lg-row align-items-lg-center gap-2">
           <div class="nav-settings d-flex align-items-center gap-2">
-            <span class="language-pill">EN</span>
-
-            <div class="currency-pill" :class="{ open: isCurrencyMenuOpen }">
+            <div
+              ref="settingsPillRef"
+              class="settings-pill"
+              :class="{ open: isCurrencyMenuOpen || isLanguageMenuOpen }"
+            >
               <button
                 type="button"
-                class="currency-pill-button"
-                aria-label="Display currency"
+                class="settings-lang"
+                :aria-label="settingsStore.t('nav.languageLabel')"
+                :aria-expanded="isLanguageMenuOpen"
+                @click="toggleLanguageMenu"
+              >
+                {{ settingsStore.selectedLanguage }}
+              </button>
+              <span class="settings-divider"></span>
+              <button
+                type="button"
+                class="settings-currency-btn"
+                :aria-label="settingsStore.t('nav.currencyLabel')"
                 :aria-expanded="isCurrencyMenuOpen"
-                @click="isCurrencyMenuOpen = !isCurrencyMenuOpen"
+                @click="toggleCurrencyMenu"
               >
                 <i class="bi bi-currency-exchange"></i>
                 <span>{{ settingsStore.selectedCurrency }}</span>
                 <i class="bi bi-chevron-down currency-chevron"></i>
               </button>
 
+              <div v-if="isLanguageMenuOpen" class="language-menu">
+                <button
+                  v-for="language in settingsStore.supportedLanguages"
+                  :key="language.code"
+                  type="button"
+                  class="language-option"
+                  :class="{ selected: language.code === settingsStore.selectedLanguage }"
+                  @click="selectLanguage(language.code)"
+                >
+                  <span>{{ language.code }}</span>
+                  <small>{{ language.label }}</small>
+                </button>
+              </div>
+
               <div v-if="isCurrencyMenuOpen" class="currency-menu">
                 <input
                   v-model="customCurrency"
                   class="currency-input"
                   maxlength="3"
-                  placeholder="Type code"
-                  aria-label="Type three-letter currency code"
+                  :placeholder="settingsStore.t('nav.currencyPlaceholder')"
+                  :aria-label="settingsStore.t('nav.currencyInputLabel')"
                   @input="customCurrency = customCurrency.toUpperCase().replace(/[^A-Z]/g, '')"
                   @keydown.enter.prevent="applyCustomCurrency"
-                  @keydown.esc="closeCurrencyMenu"
+                  @keydown.esc="closeSettingsMenus"
                 />
 
                 <div class="currency-options">
@@ -107,26 +133,38 @@
           </div>
 
           <template v-if="isSignedIn">
-            <RouterLink to="/bookmarks" class="nav-action-link" active-class="active">
+            <RouterLink v-if="!userStore.isStaff" to="/bookmarks" class="nav-action-link" active-class="active">
               <i class="bi bi-bookmark-heart"></i>
-              <span>Saved</span>
+              <span>{{ settingsStore.t('nav.saved') }}</span>
             </RouterLink>
 
-            <RouterLink to="/dashboard" class="nav-action-link" active-class="active">
+            <RouterLink
+              :to="dashboardRoute"
+              class="nav-action-link"
+              active-class="active"
+            >
               <i class="bi bi-ui-checks"></i>
-              <span>Dashboard</span>
+              <span>{{ settingsStore.t('nav.dashboard') }}</span>
             </RouterLink>
 
-            <UserButton />
+            <RouterLink to="/profile" class="nav-avatar-link" active-class="active">
+              <div class="nav-avatar">
+                <img v-if="userImageUrl" :src="userImageUrl" alt="Profile" class="nav-avatar-photo" />
+                <span v-else-if="userInitial">{{ userInitial }}</span>
+                <i v-else class="bi bi-person-fill"></i>
+              </div>
+              <span class="nav-avatar-name">{{ userFirstName }}</span>
+            </RouterLink>
+
           </template>
 
           <template v-else>
             <RouterLink to="/sign-in" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-              Sign In
+              {{ settingsStore.t('nav.signIn') }}
             </RouterLink>
 
             <RouterLink to="/sign-up" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
-              Get Started
+              {{ settingsStore.t('nav.getStarted') }}
             </RouterLink>
           </template>
         </div>
@@ -136,26 +174,73 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import { useAuth, UserButton } from '@clerk/vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import { useAuth, useUser } from '@clerk/vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import logo from '@/assets/logo/globalPathLogoTransparent.png'
 
+const route = useRoute()
 const { isSignedIn } = useAuth()
+const { user } = useUser()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
+const userFirstName = computed(() => {
+  return userStore.profile?.firstName || user.value?.firstName || ''
+})
+
+const userImageUrl = computed(() => {
+  return user.value?.imageUrl || userStore.profile?.profileImageUrl || ''
+})
+
+const userInitial = computed(() => {
+  const name = userStore.profile?.firstName || user.value?.firstName ||
+               userStore.profile?.lastName || user.value?.lastName || ''
+  return name ? name.charAt(0).toUpperCase() : ''
+})
+
 const isScrolled = ref(false)
 const isCurrencyMenuOpen = ref(false)
+const isLanguageMenuOpen = ref(false)
 const customCurrency = ref('')
 const compactAt = 80
 const expandAt = 24
+const dashboardRoute = computed(() => {
+  if (userStore.isAdmin) return '/admin'
+  if (userStore.isConsultant) return '/consultant'
+  return '/dashboard'
+})
 
 function closeCurrencyMenu() {
   isCurrencyMenuOpen.value = false
   customCurrency.value = ''
+}
+
+function closeLanguageMenu() {
+  isLanguageMenuOpen.value = false
+}
+
+function closeSettingsMenus() {
+  closeCurrencyMenu()
+  closeLanguageMenu()
+}
+
+function toggleLanguageMenu() {
+  isLanguageMenuOpen.value = !isLanguageMenuOpen.value
+  isCurrencyMenuOpen.value = false
+  customCurrency.value = ''
+}
+
+function toggleCurrencyMenu() {
+  isCurrencyMenuOpen.value = !isCurrencyMenuOpen.value
+  isLanguageMenuOpen.value = false
+}
+
+function selectLanguage(language) {
+  settingsStore.setLanguage(language)
+  closeLanguageMenu()
 }
 
 function selectCurrency(currency) {
@@ -180,13 +265,59 @@ function handleScroll() {
   }
 }
 
+const settingsPillRef = ref(null)
+
+function handleDocumentPointerDown(event) {
+  if (!isCurrencyMenuOpen.value && !isLanguageMenuOpen.value) return
+
+  if (settingsPillRef.value?.contains(event.target)) return
+
+  closeSettingsMenus()
+}
+
+function handleDocumentKeydown(event) {
+  if (event.key === 'Escape') {
+    closeSettingsMenus()
+    closeMobileMenu()
+  }
+}
+
+function closeMobileMenu() {
+  const el = document.getElementById('globalPathNavbar')
+  if (!el || !el.classList.contains('show')) return
+  const bsCollapse = window.bootstrap?.Collapse?.getInstance(el)
+  if (bsCollapse) bsCollapse.hide()
+  else el.classList.remove('show')
+}
+
+function handleOutsideClick(event) {
+  const navbar = document.querySelector('.gpe-navbar')
+  if (!navbar) return
+  const el = document.getElementById('globalPathNavbar')
+  if (el && el.classList.contains('show') && !navbar.contains(event.target)) {
+    closeMobileMenu()
+  }
+}
+
+// Close mobile menu on route change
+watch(() => route.fullPath, () => {
+  closeMobileMenu()
+  closeSettingsMenus()
+})
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+  document.addEventListener('pointerdown', handleOutsideClick)
+  document.addEventListener('keydown', handleDocumentKeydown)
   handleScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  document.removeEventListener('pointerdown', handleOutsideClick)
+  document.removeEventListener('keydown', handleDocumentKeydown)
 })
 </script>
 
@@ -196,8 +327,8 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   border-bottom: 1px solid #e5e7eb;
-  padding: 0.4rem 0;
-  min-height: 70px;
+  padding: 0.75rem 0;
+  min-height: 88px;
   transition:
     box-shadow 0.25s ease,
     background-color 0.25s ease,
@@ -219,11 +350,11 @@ onBeforeUnmount(() => {
 
 .navbar-brand {
   margin-right: 0;
-  transform: translateX(-12px);
+  z-index: 2;
 }
 
 .navbar-logo {
-  height: 70px;
+  height: 82px;
   width: auto;
   max-width: 180px;
   object-fit: contain;
@@ -233,18 +364,14 @@ onBeforeUnmount(() => {
     max-width 0.25s ease;
 }
 
-.navbar-collapse {
-  position: relative;
-}
-
 .nav-center {
   align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
+  justify-content: flex-start;
+  gap: 0.25rem;
 }
 
 .navbar-actions {
-  margin-left: 1rem;
+  margin-left: auto;
   transform: translateX(12px);
 }
 
@@ -361,58 +488,143 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+/* User avatar link */
+.nav-avatar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  padding: 0.3rem;
+  border-radius: 999px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.nav-avatar-link:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.nav-avatar-link.active,
+.nav-avatar-link.router-link-active {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1a3a5c, #2e7dc7);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-avatar-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-avatar-link:hover .nav-avatar {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(26, 58, 92, 0.2);
+}
+
+.nav-avatar-link.active .nav-avatar,
+.nav-avatar-link.router-link-active .nav-avatar {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb;
+}
+
+.nav-avatar-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nav-settings {
   flex-shrink: 0;
 }
 
-.language-pill,
-.currency-pill {
+/* ── Combined settings pill (lang + currency) ── */
+.settings-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: fit-content;
-  padding: 0.35rem 0.7rem;
+  position: relative;
   border-radius: 999px;
   background: #6cd5ff;
-  color: #334155;
   font-size: 0.8rem;
   font-weight: 700;
+  color: #334155;
+  overflow: visible;
 }
 
-.currency-pill {
-  position: relative;
-  padding: 0;
+.settings-lang {
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
 }
 
-.currency-pill-button {
+.settings-lang:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px 0 0 999px;
+}
+
+.settings-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.settings-currency-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  min-height: 100%;
-  padding: 0.35rem 0.6rem 0.35rem 0.7rem;
+  gap: 0.3rem;
+  padding: 0.35rem 0.6rem 0.35rem 0.55rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0 999px 999px 0;
   background: transparent;
   color: #334155;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
-.currency-pill-button i {
+.settings-currency-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.settings-currency-btn i {
   color: #334155;
 }
 
-.currency-pill-button span {
-  min-width: 2.2rem;
+.settings-currency-btn span {
+  min-width: 2rem;
 }
 
 .currency-chevron {
   font-size: 0.7rem;
 }
 
-.currency-menu {
+.currency-menu,
+.language-menu {
   position: absolute;
   right: 0;
   top: calc(100% + 0.5rem);
@@ -423,6 +635,53 @@ onBeforeUnmount(() => {
   background: #ffffff;
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
   z-index: 1040;
+  animation: slideDown 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.language-menu {
+  left: 0;
+  right: auto;
+  width: 190px;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.language-option {
+  align-items: center;
+  background: #f8fafc;
+  border: 0;
+  border-radius: 8px;
+  color: #334155;
+  display: flex;
+  gap: 0.55rem;
+  height: 36px;
+  padding: 0 0.65rem;
+  text-align: left;
+}
+
+.language-option span {
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 850;
+  min-width: 2.2rem;
+}
+
+.language-option small {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.language-option:hover,
+.language-option.selected {
+  background: #f4a41b;
+}
+
+.language-option:hover span,
+.language-option:hover small,
+.language-option.selected span,
+.language-option.selected small {
+  color: #0d1f33;
 }
 
 .currency-input {
@@ -466,7 +725,7 @@ onBeforeUnmount(() => {
   color: #0d1f33;
 }
 
-.currency-pill i {
+.settings-pill i {
   font-size: 0.9rem;
 }
 
@@ -474,22 +733,77 @@ onBeforeUnmount(() => {
   color: #0a82d3;
 }
 
-@media (min-width: 992px) {
+/* ── lg expanded: scrolled compact ── */
+@media (min-width: 800px) {
+  .navbar-expand-custom {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .navbar-expand-custom .navbar-toggler {
+    display: none;
+  }
+
+  .navbar-expand-custom .navbar-collapse {
+    display: flex !important;
+    flex-basis: auto;
+  }
+
+  .navbar-expand-custom .navbar-nav {
+    flex-direction: row;
+  }
+
+  .nav-center {
+    margin-bottom: 0 !important;
+  }
+
+  .navbar-actions {
+    align-items: center !important;
+    flex-direction: row !important;
+  }
+
+  .navbar-brand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   .gpe-navbar.is-scrolled {
-    min-height: 58px;
-    padding: 0.25rem 0;
+    min-height: 88px;
+    padding: 0.75rem 0;
   }
 
   .gpe-navbar.is-scrolled .navbar-logo {
-    height: 42px;
-    max-width: 130px;
+    height: 82px;
+    max-width: 180px;
   }
 
   .gpe-navbar.is-scrolled .nav-center {
     gap: 0.35rem;
   }
 
-  .gpe-navbar.is-scrolled .nav-link {
+  .gpe-navbar.is-scrolled .nav-link,
+  .gpe-navbar.is-scrolled .nav-action-link {
+    width: auto;
+    height: auto;
+  }
+}
+
+/* ── 800px–1199px: compact actions and primary nav ── */
+@media (min-width: 800px) and (max-width: 1199.98px) {
+  .nav-action-link > span {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .nav-avatar-name {
+    display: none;
+  }
+
+  .nav-link {
     width: 42px;
     min-width: 42px;
     height: 42px;
@@ -497,45 +811,55 @@ onBeforeUnmount(() => {
     gap: 0;
   }
 
-  .gpe-navbar.is-scrolled .nav-link i {
+  .nav-link i {
     font-size: 1.1rem;
   }
 
-  .gpe-navbar.is-scrolled .nav-link > span,
-  .gpe-navbar.is-scrolled .nav-action-link > span {
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .gpe-navbar.is-scrolled .nav-action-link {
+  .nav-action-link {
     width: 42px;
     height: 42px;
     padding: 0;
     gap: 0;
   }
+
+  .settings-currency-btn span {
+    display: none;
+  }
+
+  .settings-lang {
+    padding: 0.35rem 0.5rem;
+  }
 }
 
+/* ── 800px–1199px: icon-only primary nav too ── */
+@media (min-width: 800px) and (max-width: 1199.98px) {
+  .nav-link > span {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+}
+
+/* ── ≥1200px: full primary nav labels return ── */
 @media (min-width: 1200px) {
-  .navbar-collapse {
-    position: static;
-  }
-
-  .nav-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0 !important;
-  }
-
-  .navbar-actions {
-    margin-left: auto;
+  .nav-link > span {
+    max-width: 12rem;
+    opacity: 1;
   }
 }
 
-@media (max-width: 1199.98px) {
+/* ── ≥1320px: full right action labels return ── */
+@media (min-width: 1320px) {
+  .nav-action-link > span,
+  .settings-currency-btn span {
+    display: inline;
+    max-width: 8rem;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1399.98px) {
   .nav-shell {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
@@ -546,18 +870,17 @@ onBeforeUnmount(() => {
     transform: none;
   }
 
-  .navbar-logo {
-    height: 48px;
-    max-width: 160px;
+  .navbar-brand {
+    transform: translate(-50%, -50%);
   }
 
-  .nav-link {
-    padding: 0.5rem 0.65rem !important;
-    font-size: 0.86rem;
+  .navbar-logo {
+    height: 62px;
+    max-width: 160px;
   }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 799.98px) {
   .gpe-navbar {
     min-height: 72px;
     padding: 0.45rem 0;
@@ -571,6 +894,11 @@ onBeforeUnmount(() => {
   .navbar-logo {
     height: 52px;
     max-width: 150px;
+  }
+
+  .navbar-brand {
+    position: static;
+    transform: none;
   }
 
   .navbar-collapse {
@@ -612,9 +940,12 @@ onBeforeUnmount(() => {
     padding: 0.75rem 0.85rem;
   }
 
-  .language-pill,
-  .currency-pill {
+  .settings-pill {
     margin-bottom: 0.25rem;
+  }
+
+  .settings-currency-btn span {
+    display: inline;
   }
 }
 </style>

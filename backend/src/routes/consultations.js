@@ -34,11 +34,13 @@ router.post('/', async (req, res) => {
     const auth = getAuth(req);
     const user = auth.userId ? await getOrCreateCurrentUser(req) : null;
     const programId = req.body.programId ? Number.parseInt(req.body.programId, 10) : null;
+    const consultantId = req.body.consultantId ? Number.parseInt(req.body.consultantId, 10) : null;
 
     const consultation = await req.prisma.consultation.create({
       data: {
         userId: user?.id || null,
         programId,
+        consultantId,
         fullName: req.body.fullName || req.body.name,
         email: req.body.email,
         phone: req.body.phone || null,

@@ -4,7 +4,7 @@
     <div class="breadcrumb-bar">
       <div class="container">
         <button class="back-btn" @click="$router.back()">
-          <i class="bi bi-arrow-left me-2"></i>Back to Programs
+          <i class="bi bi-arrow-left me-2"></i>{{ settingsStore.t('programDetail.back') }}
         </button>
       </div>
     </div>
@@ -12,7 +12,7 @@
     <!-- Loading -->
     <div v-if="loading" class="container py-5 text-center">
       <div class="spinner-border" style="color: #2e7dc7; width: 2.5rem; height: 2.5rem"></div>
-      <p class="text-muted mt-3 small">Loading program details...</p>
+      <p class="text-muted mt-3 small">{{ settingsStore.t('programDetail.loading') }}</p>
     </div>
 
     <!-- Program found -->
@@ -36,7 +36,7 @@
               </div>
             </div>
           </div>
-          <h1 class="hero-title">{{ program.title }}</h1>
+          <h1 class="hero-title">{{ displayTitle }}</h1>
           <p class="hero-institution">{{ program.institution }}</p>
         </div>
       </div>
@@ -46,12 +46,12 @@
           <!-- ── MAIN CONTENT ── -->
           <div class="col-lg-8">
             <!-- Quick stats strip -->
-            <div class="stats-strip mb-4">
+            <div class="stats-strip mb-4 animate-in">
               <div class="stat-item">
                 <i class="bi bi-clock stat-icon"></i>
                 <div>
                   <div class="stat-value">{{ program.durationMonths }} months</div>
-                  <div class="stat-label">Duration</div>
+                  <div class="stat-label">{{ settingsStore.t('programDetail.duration') }}</div>
                 </div>
               </div>
               <div class="stat-divider"></div>
@@ -59,7 +59,7 @@
                 <i class="bi bi-translate stat-icon"></i>
                 <div>
                   <div class="stat-value">{{ program.language }}</div>
-                  <div class="stat-label">Language</div>
+                  <div class="stat-label">{{ settingsStore.t('programDetail.language') }}</div>
                 </div>
               </div>
               <div class="stat-divider"></div>
@@ -67,7 +67,7 @@
                 <i class="bi bi-geo-alt stat-icon"></i>
                 <div>
                   <div class="stat-value">{{ program.city }}</div>
-                  <div class="stat-label">City</div>
+                  <div class="stat-label">{{ settingsStore.t('programDetail.city') }}</div>
                 </div>
               </div>
               <div class="stat-divider"></div>
@@ -75,7 +75,7 @@
                 <i class="bi bi-cash-stack stat-icon"></i>
                 <div>
                   <div class="stat-value">{{ program.currency }}</div>
-                  <div class="stat-label">Currency</div>
+                  <div class="stat-label">{{ settingsStore.t('programDetail.currency') }}</div>
                 </div>
               </div>
             </div>
@@ -83,14 +83,15 @@
             <!-- About -->
             <div class="detail-card mb-4">
               <h5 class="detail-card-title">
-                <i class="bi bi-info-circle me-2"></i>About This Program
+                <i class="bi bi-info-circle me-2"></i>{{ settingsStore.t('programDetail.about') }}
+                <span v-if="translationLoading" class="translation-status">{{ settingsStore.t('programDetail.translating') }}</span>
               </h5>
-              <p class="detail-description">{{ program.description }}</p>
+              <p class="detail-description">{{ displayDescription }}</p>
             </div>
 
             <!-- Specializations -->
             <div class="detail-card mb-4">
-              <h5 class="detail-card-title"><i class="bi bi-tags me-2"></i>Specializations</h5>
+              <h5 class="detail-card-title"><i class="bi bi-tags me-2"></i>{{ settingsStore.t('programDetail.specializations') }}</h5>
               <div class="d-flex flex-wrap gap-2 mt-3">
                 <span v-for="tag in allTags" :key="tag" class="spec-tag-lg">
                   {{ tag }}
@@ -101,7 +102,7 @@
             <!-- Notes -->
             <div v-if="program.notes" class="detail-card detail-card-note mb-4">
               <h5 class="detail-card-title">
-                <i class="bi bi-sticky me-2 text-warning"></i>Additional Notes
+                <i class="bi bi-sticky me-2 text-warning"></i>{{ settingsStore.t('programDetail.notes') }}
               </h5>
               <p class="text-muted mb-0 small lh-lg">{{ program.notes }}</p>
             </div>
@@ -112,7 +113,7 @@
             <div class="detail-sidebar">
               <!-- Tuition -->
               <div class="tuition-block mb-4">
-                <div class="tuition-label">Tuition Fee</div>
+                <div class="tuition-label">{{ settingsStore.t('programDetail.tuition') }}</div>
                 <div class="tuition-big">{{ formattedTuition }}</div>
                 <div class="tuition-basis-text">{{ feeBasisLabel }}</div>
               </div>
@@ -122,23 +123,23 @@
               <!-- Info rows -->
               <div class="info-rows mb-4">
                 <div class="info-row">
-                  <span class="info-row-label"><i class="bi bi-clock me-2"></i>Duration</span>
+                  <span class="info-row-label"><i class="bi bi-clock me-2"></i>{{ settingsStore.t('programDetail.duration') }}</span>
                   <span class="info-row-value">{{ program.durationMonths }} months</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-row-label"><i class="bi bi-translate me-2"></i>Language</span>
+                  <span class="info-row-label"><i class="bi bi-translate me-2"></i>{{ settingsStore.t('programDetail.language') }}</span>
                   <span class="info-row-value">{{ program.language }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-row-label"><i class="bi bi-geo-alt me-2"></i>Location</span>
+                  <span class="info-row-label"><i class="bi bi-geo-alt me-2"></i>{{ settingsStore.t('programDetail.location') }}</span>
                   <span class="info-row-value">{{ program.city }}, {{ program.country }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-row-label"><i class="bi bi-mortarboard me-2"></i>Type</span>
+                  <span class="info-row-label"><i class="bi bi-mortarboard me-2"></i>{{ settingsStore.t('programDetail.type') }}</span>
                   <span class="info-row-value">{{ program.type }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-row-label"><i class="bi bi-cash me-2"></i>Fee Basis</span>
+                  <span class="info-row-label"><i class="bi bi-cash me-2"></i>{{ settingsStore.t('programDetail.feeBasis') }}</span>
                   <span class="info-row-value text-capitalize">{{
                     program.feeBasis?.replace('_', ' ')
                   }}</span>
@@ -156,7 +157,7 @@
                   rel="noopener"
                   class="btn btn-sidebar-primary"
                 >
-                  <i class="bi bi-box-arrow-up-right me-2"></i>Visit Official Website
+                  <i class="bi bi-box-arrow-up-right me-2"></i>{{ settingsStore.t('programDetail.visit') }}
                 </a>
 
                 <button
@@ -169,17 +170,17 @@
                     :class="isBookmarked ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'"
                     class="me-2"
                   ></i>
-                  {{ isBookmarked ? 'Saved to Bookmarks' : 'Save Program' }}
+                  {{ isBookmarked ? settingsStore.t('programDetail.saved') : settingsStore.t('programDetail.save') }}
                 </button>
                 <RouterLink v-else to="/sign-in" class="btn btn-sidebar-outline">
-                  <i class="bi bi-bookmark me-2"></i>Sign in to Save
+                  <i class="bi bi-bookmark me-2"></i>{{ settingsStore.t('programDetail.signInSave') }}
                 </RouterLink>
 
                 <RouterLink
                   :to="`/consult?programId=${program.id}`"
                   class="btn btn-sidebar-consult"
                 >
-                  <i class="bi bi-calendar-check me-2"></i>Book Free Consultation
+                  <i class="bi bi-calendar-check me-2"></i>{{ settingsStore.t('programDetail.bookConsultation') }}
                 </RouterLink>
 
                 <button
@@ -188,7 +189,7 @@
                   @click="toggleCompare"
                 >
                   <i class="bi bi-bar-chart-steps me-2"></i>
-                  {{ isInCompare ? 'Remove from Compare' : 'Add to Compare' }}
+                  {{ isInCompare ? settingsStore.t('programDetail.removeCompare') : settingsStore.t('programDetail.addCompare') }}
                 </button>
               </div>
             </div>
@@ -200,10 +201,10 @@
     <!-- Not found -->
     <div v-else class="container py-5 text-center">
       <div style="font-size: 3rem; margin-bottom: 1rem">😕</div>
-      <h4 class="fw-bold mb-2">Program not found</h4>
-      <p class="text-muted mb-4">This program may have been removed or the link is incorrect.</p>
+      <h4 class="fw-bold mb-2">{{ settingsStore.t('programDetail.notFoundTitle') }}</h4>
+      <p class="text-muted mb-4">{{ settingsStore.t('programDetail.notFoundText') }}</p>
       <RouterLink to="/programs" class="btn btn-primary rounded-pill px-4">
-        Browse All Programs
+        {{ settingsStore.t('programDetail.browseAll') }}
       </RouterLink>
     </div>
   </div>
@@ -213,6 +214,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useAuth } from '@clerk/vue'
+import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { getCountryFlag } from '@/utils/countryFlags'
@@ -221,10 +223,13 @@ import api from '@/api'
 
 const route = useRoute()
 const { isSignedIn } = useAuth()
+const programStore = useProgramStore()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
 const program = ref(null)
+const activeTranslation = ref(null)
+const translationLoading = ref(false)
 const loading = ref(true)
 
 onMounted(async () => {
@@ -232,6 +237,7 @@ onMounted(async () => {
     const { data } = await api.get(`/api/programs/${route.params.id}`)
     program.value = data
     await settingsStore.fetchRate(data.currency)
+    await loadProgramTranslation()
   } catch (e) {
     console.error(e)
   } finally {
@@ -245,11 +251,23 @@ watch(
     if (program.value) settingsStore.fetchRate(program.value.currency)
   },
 )
+
+watch(
+  () => settingsStore.selectedLanguage,
+  () => loadProgramTranslation(),
+)
 const countryGradient = computed(() => getCountryGradient(program.value?.country))
 const countryFlag = computed(() => getCountryFlag(program.value?.country))
+const displayTitle = computed(() => activeTranslation.value?.title || program.value?.title || '')
+const displayDescription = computed(
+  () => activeTranslation.value?.description || program.value?.description || '',
+)
+const displaySpecialization = computed(
+  () => activeTranslation.value?.specialization || program.value?.specialization || '',
+)
 const allTags = computed(
   () =>
-    program.value?.specialization
+    displaySpecialization.value
       ?.split(',')
       .map((t) => t.trim())
       .filter(Boolean) || [],
@@ -262,12 +280,12 @@ const formattedTuition = computed(() => {
   return settingsStore.formatMoney(
     program.value.tuitionFee,
     program.value.currency,
-    'Free / Low Cost',
+    settingsStore.t('programDetail.lowCost'),
   )
 })
 const feeBasisLabel = computed(() => {
   return (
-    { annual: 'per year', total: 'total program fee', per_term: 'per term' }[
+    { annual: settingsStore.t('programDetail.feeAnnual'), total: settingsStore.t('programDetail.feeTotal'), per_term: settingsStore.t('programDetail.feeTerm') }[
       program.value?.feeBasis
     ] || ''
   )
@@ -283,6 +301,39 @@ function toggleCompare() {
     userStore.removeFromCompare(program.value.id)
   } else {
     userStore.addToCompare(program.value)
+  }
+}
+
+async function loadProgramTranslation() {
+  if (!program.value) return
+
+  const language = settingsStore.selectedLanguage
+
+  if (language === 'EN') {
+    activeTranslation.value = null
+    return
+  }
+
+  try {
+    translationLoading.value = true
+    const cachedTranslation = await programStore.fetchProgramTranslation(program.value.id, language)
+
+    if (cachedTranslation) {
+      activeTranslation.value = cachedTranslation
+      return
+    }
+
+    if (!isSignedIn.value) {
+      activeTranslation.value = null
+      return
+    }
+
+    activeTranslation.value = await programStore.translateProgram(program.value.id, language)
+  } catch (error) {
+    console.error(error)
+    activeTranslation.value = null
+  } finally {
+    translationLoading.value = false
   }
 }
 </script>
@@ -311,8 +362,14 @@ function toggleCompare() {
   padding: 0;
   transition: color 0.15s;
 }
+.back-btn i {
+  transition: transform 0.2s ease;
+}
 .back-btn:hover {
   color: #1a3a5c;
+}
+.back-btn:hover i {
+  transform: translateX(-4px);
 }
 
 /* Hero banner */
@@ -445,6 +502,12 @@ function toggleCompare() {
   display: flex;
   align-items: center;
 }
+.translation-status {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
 .detail-description {
   color: #475569;
   line-height: 1.75;
@@ -461,6 +524,12 @@ function toggleCompare() {
   padding: 5px 14px;
   font-size: 0.82rem;
   font-weight: 500;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.spec-tag-lg:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
 }
 
 /* Sidebar */

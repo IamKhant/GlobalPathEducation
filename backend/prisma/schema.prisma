@@ -25,10 +25,12 @@ model Program {
   specialization  String?  @db.Text
   websiteUrl      String?  @map("website_url")
   description     String?  @db.Text
+  cardColor       String?  @map("card_color")
   notes           String?  @db.Text
 
   bookmarks       Bookmark[]
   consultations   Consultation[]
+  translations    ProgramTranslation[]
 
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -36,20 +38,75 @@ model Program {
   @@map("programs")
 }
 
-model User {
+model ProgramTranslation {
   id             Int      @id @default(autoincrement())
-  clerkId        String   @unique @map("clerk_id")
-  email          String   @unique
-  firstName      String?  @map("first_name")
-  lastName       String?  @map("last_name")
+  programId      Int      @map("program_id")
+  locale         String
 
-  bookmarks      Bookmark[]
-  consultations  Consultation[]
+  title          String
+  specialization String? @db.Text
+  description    String? @db.Text
+
+  program        Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
+  @@unique([programId, locale])
+  @@map("program_translations")
+}
+
+model UiTranslation {
+  id        Int      @id @default(autoincrement())
+  locale    String
+  key       String
+  text      String   @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([locale, key])
+  @@map("ui_translations")
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  clerkId               String    @unique @map("clerk_id")
+  email                 String    @unique
+  firstName             String?   @map("first_name")
+  lastName              String?   @map("last_name")
+  role                  String    @default("student")
+  phone                 String?
+  consultantBio         String?   @map("consultant_bio") @db.Text
+  nationality           String?
+  dateOfBirth           DateTime? @map("date_of_birth")
+  currentEducationLevel String?   @map("current_education_level")
+  preferredStudyLevel   String?   @map("preferred_study_level")
+  preferredDestination  String?   @map("preferred_destination")
+  profileImageUrl       String?   @map("profile_image_url")
+
+  bookmarks             Bookmark[]
+  consultations         Consultation[]
+  assignedConsultations Consultation[] @relation("AssignedConsultant")
+  consultantCountries   ConsultantCountry[]
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
   @@map("users")
+}
+
+model ConsultantCountry {
+  id           Int      @id @default(autoincrement())
+  consultantId Int      @map("consultant_id")
+  country      String
+
+  consultant   User     @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([consultantId, country])
+  @@map("consultant_countries")
 }
 
 model Bookmark {
@@ -71,6 +128,7 @@ model Consultation {
 
   userId            Int?     @map("user_id")
   programId         Int?     @map("program_id")
+  consultantId      Int?     @map("consultant_id")
 
   fullName          String   @map("full_name")
   email             String
@@ -84,6 +142,7 @@ model Consultation {
 
   user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   program           Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
+  consultant        User?    @relation("AssignedConsultant", fields: [consultantId], references: [id], onDelete: SetNull)
 
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")

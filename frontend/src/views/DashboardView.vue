@@ -1,42 +1,37 @@
 <template>
-  <div class="py-4">
-    <div class="container">
-      <!-- Welcome -->
-      <div class="d-flex align-items-center gap-3 mb-5">
-        <div>
-          <h1 class="section-heading mb-1">Welcome back, {{ firstName }} 👋</h1>
-          <p class="section-subheading mb-0">Here's an overview of your activity</p>
+  <div class="dashboard-page">
+    <!-- Hero -->
+    <section class="dashboard-hero-section">
+      <div class="container">
+        <div class="dashboard-hero mb-4">
+          <div>
+            <p class="eyebrow mb-2">{{ settingsStore.t('dashboard.kicker') }}</p>
+            <h1 class="section-heading mb-1">
+              {{ settingsStore.t('dashboard.welcome', { name: firstName }) }}
+            </h1>
+            <p class="section-subheading mb-0">{{ settingsStore.t('dashboard.subtitle') }}</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <RouterLink to="/profile" class="btn btn-gpe-outline">
+              <i class="bi bi-person-lines-fill me-2"></i>{{ settingsStore.t('dashboard.editProfile') }}
+            </RouterLink>
+            <RouterLink to="/consult" class="btn btn-gpe-primary">
+              <i class="bi bi-calendar-check me-2"></i>{{ settingsStore.t('dashboard.bookConsultation') }}
+            </RouterLink>
+          </div>
         </div>
       </div>
+    </section>
+
+    <div class="container py-4">
 
       <!-- Stats -->
       <div class="row g-3 mb-5">
-        <div class="col-6 col-md-3">
+        <div v-for="(stat, idx) in stats" :key="stat.label" class="col-6 col-md-3 animate-in" :style="{ animationDelay: `${idx * 0.08}s` }">
           <div class="stat-card">
-            <div class="stat-icon">🔖</div>
-            <div class="stat-value">{{ userStore.bookmarks.length }}</div>
-            <div class="stat-label">Saved Programs</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">📅</div>
-            <div class="stat-value">{{ consultations.length }}</div>
-            <div class="stat-label">Consultations</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">⚖️</div>
-            <div class="stat-value">{{ userStore.compareList.length }}</div>
-            <div class="stat-label">In Comparison</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value">{{ completedCount }}</div>
-            <div class="stat-label">Consultations Done</div>
+            <div class="stat-icon">{{ stat.icon }}</div>
+            <div class="stat-value">{{ stat.value }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
           </div>
         </div>
       </div>
@@ -46,11 +41,11 @@
         <div class="col-lg-6">
           <div class="bg-white rounded-3 p-4 shadow-sm h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">Saved Programs</h5>
-              <RouterLink to="/bookmarks" class="btn btn-sm btn-gpe-outline">View All</RouterLink>
+              <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">{{ settingsStore.t('dashboard.savedPrograms') }}</h5>
+              <RouterLink to="/bookmarks" class="btn btn-sm btn-gpe-outline">{{ settingsStore.t('dashboard.viewAll') }}</RouterLink>
             </div>
             <div v-if="userStore.bookmarks.length === 0" class="text-center py-3 text-muted small">
-              <div class="fs-3 mb-2">🔖</div>No saved programs yet
+              <div class="fs-3 mb-2">🔖</div>{{ settingsStore.t('dashboard.noSaved') }}
             </div>
             <div v-else>
               <div v-for="b in userStore.bookmarks.slice(0, 4)" :key="b.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
@@ -58,7 +53,7 @@
                   <div class="small fw-semibold" style="color:var(--gpe-primary)">{{ b.program.title }}</div>
                   <div class="small text-muted">{{ b.program.institution }} · {{ b.program.country }}</div>
                 </div>
-                <RouterLink :to="`/programs/${b.program.id}`" class="btn btn-sm btn-outline-secondary">View</RouterLink>
+                <RouterLink :to="`/programs/${b.program.id}`" class="btn btn-sm btn-outline-secondary">{{ settingsStore.t('common.view') }}</RouterLink>
               </div>
             </div>
           </div>
@@ -68,24 +63,24 @@
         <div class="col-lg-6">
           <div class="bg-white rounded-3 p-4 shadow-sm h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">Consultation History</h5>
-              <RouterLink to="/consult" class="btn btn-sm btn-gpe-outline">Book New</RouterLink>
+              <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">{{ settingsStore.t('dashboard.history') }}</h5>
+              <RouterLink to="/consult" class="btn btn-sm btn-gpe-outline">{{ settingsStore.t('dashboard.bookNew') }}</RouterLink>
             </div>
             <div v-if="loading" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>
             <div v-else-if="consultations.length === 0" class="text-center py-3 text-muted small">
-              <div class="fs-3 mb-2">📅</div>No consultations yet
+              <div class="fs-3 mb-2">📅</div>{{ settingsStore.t('dashboard.noConsultations') }}
             </div>
             <div v-else>
               <div v-for="c in consultations" :key="c.id" class="py-2 border-bottom">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <div class="small fw-semibold" style="color:var(--gpe-primary)">{{ c.program?.title || 'General Inquiry' }}</div>
+                    <div class="small fw-semibold" style="color:var(--gpe-primary)">{{ c.program?.title || settingsStore.t('dashboard.generalInquiry') }}</div>
                     <div class="small text-muted">{{ formatDate(c.createdAt) }}</div>
                     <div class="small text-muted mt-1" style="max-width:260px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">{{ c.message }}</div>
                   </div>
                   <div class="d-flex flex-column align-items-end gap-1">
-                    <span class="badge" :class="statusClass(c.status)">{{ c.status }}</span>
-                    <button v-if="c.status === 'pending'" class="btn btn-sm btn-outline-danger" style="font-size:0.72rem;" @click="cancel(c.id)">Cancel</button>
+                    <span class="badge" :class="statusClass(c.status)">{{ statusLabel(c.status) }}</span>
+                    <button v-if="c.status === 'pending'" class="btn btn-sm btn-outline-danger" style="font-size:0.72rem;" @click="cancel(c.id)">{{ settingsStore.t('common.cancel') }}</button>
                   </div>
                 </div>
               </div>
@@ -96,11 +91,20 @@
 
       <!-- Quick actions -->
       <div class="mt-4">
-        <h6 class="fw-bold mb-3" style="color:var(--gpe-primary)">Quick Actions</h6>
-        <div class="d-flex flex-wrap gap-2">
-          <RouterLink to="/programs" class="btn btn-gpe-primary"><i class="bi bi-search me-2"></i>Browse Programs</RouterLink>
-          <RouterLink to="/compare" class="btn btn-gpe-outline"><i class="bi bi-bar-chart-steps me-2"></i>Compare Programs</RouterLink>
-          <RouterLink to="/consult" class="btn btn-outline-success"><i class="bi bi-calendar-check me-2"></i>Book Consultation</RouterLink>
+        <h6 class="fw-bold mb-3" style="color:var(--gpe-primary)">{{ settingsStore.t('dashboard.quickActions') }}</h6>
+        <div class="quick-actions-grid">
+          <RouterLink to="/programs" class="quick-action-card">
+            <i class="bi bi-search"></i>
+            <span>{{ settingsStore.t('dashboard.browsePrograms') }}</span>
+          </RouterLink>
+          <RouterLink to="/compare" class="quick-action-card">
+            <i class="bi bi-bar-chart-steps"></i>
+            <span>{{ settingsStore.t('dashboard.comparePrograms') }}</span>
+          </RouterLink>
+          <RouterLink to="/consult" class="quick-action-card">
+            <i class="bi bi-calendar-check"></i>
+            <span>{{ settingsStore.t('dashboard.bookConsultation') }}</span>
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -111,19 +115,28 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useUser } from '@clerk/vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import api from '@/api'
 
 const { user } = useUser()
+const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 const consultations = ref([])
 const loading = ref(true)
 
-const firstName = computed(() => user.value?.firstName || 'there')
+const firstName = computed(() => userStore.profile?.firstName || user.value?.firstName || 'there')
 const completedCount = computed(() => consultations.value.filter(c => c.status === 'completed').length)
 
+const stats = computed(() => [
+  { icon: '🔖', value: userStore.bookmarks.length, label: settingsStore.t('dashboard.savedPrograms') },
+  { icon: '📅', value: consultations.value.length, label: settingsStore.t('dashboard.consultations') },
+  { icon: '⚖️', value: userStore.compareList.length, label: settingsStore.t('dashboard.inComparison') },
+  { icon: '✅', value: completedCount.value, label: settingsStore.t('dashboard.consultationsDone') },
+])
+
 onMounted(async () => {
-  await userStore.fetchBookmarks()
+  await Promise.all([userStore.fetchBookmarks(), userStore.fetchProfile()])
 
   try {
     const { data } = await api.get('/api/consultations')
@@ -152,4 +165,115 @@ function statusClass(status) {
     cancelled: 'bg-danger',
   }[status] || 'bg-secondary'
 }
+
+function statusLabel(status) {
+  return settingsStore.t(`common.status.${String(status).toLowerCase()}`)
+}
 </script>
+
+<style scoped>
+.dashboard-page {
+  background: #f8fafc;
+  min-height: 80vh;
+}
+
+.dashboard-hero-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1a3a5c 60%, #1e5fa0 100%);
+  color: #ffffff;
+  padding: 2rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-hero-section::after {
+  content: '';
+  position: absolute;
+  right: -100px;
+  bottom: -100px;
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  background: rgba(244, 164, 27, 0.08);
+  pointer-events: none;
+}
+
+.dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  color: #f4a41b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-heading {
+  color: #ffffff;
+}
+
+.section-subheading {
+  color: #94a3b8;
+}
+
+/* Quick actions */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid #e5edf7;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--gpe-primary);
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s ease,
+              border-color 0.3s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.quick-action-card i {
+  font-size: 1.5rem;
+  color: #2563eb;
+  transition: transform 0.3s ease;
+}
+
+.quick-action-card:hover i {
+  transform: scale(1.15);
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

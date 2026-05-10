@@ -22,6 +22,7 @@ export const useProgramStore = defineStore('programs', () => {
   const totalPages = ref(1)
   const loading = ref(false)
   const error = ref('')
+  const translationsByProgramLocale = ref({})
 
   function activeParams(page = 1, extraParams = {}) {
     const params = {
@@ -88,6 +89,50 @@ export const useProgramStore = defineStore('programs', () => {
     }
   }
 
+  function translationKey(programId, locale) {
+    return `${programId}:${locale?.toUpperCase()}`
+  }
+
+  async function fetchProgramTranslation(programId, locale) {
+    const normalizedLocale = locale?.trim().toUpperCase()
+    if (!programId || !normalizedLocale) return null
+
+    const key = translationKey(programId, normalizedLocale)
+    if (translationsByProgramLocale.value[key]) return translationsByProgramLocale.value[key]
+
+    try {
+      const { data } = await api.get(`/api/programs/${programId}/translation`, {
+        params: {
+          locale: normalizedLocale,
+        },
+      })
+      translationsByProgramLocale.value[key] = data
+      return data
+    } catch (err) {
+      if (err.response?.status !== 404) console.error(err)
+      return null
+    }
+  }
+
+  async function translateProgram(programId, locale, options = {}) {
+    const normalizedLocale = locale?.trim().toUpperCase()
+    if (!programId || !normalizedLocale) return null
+
+    const key = translationKey(programId, normalizedLocale)
+
+    try {
+      const { data } = await api.post(`/api/programs/${programId}/translation`, {
+        targetLang: normalizedLocale,
+        refresh: options.refresh === true,
+      })
+      translationsByProgramLocale.value[key] = data
+      return data
+    } catch (err) {
+      console.error(err)
+      throw err
+    }
+  }
+
   function setFilter(key, value) {
     if (key in filters.value) {
       filters.value[key] = value
@@ -115,9 +160,12 @@ export const useProgramStore = defineStore('programs', () => {
     totalPages,
     loading,
     error,
+    translationsByProgramLocale,
     fetchPrograms,
     fetchFeaturedPrograms,
     fetchMeta,
+    fetchProgramTranslation,
+    translateProgram,
     setFilter,
     resetFilters,
   }

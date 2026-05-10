@@ -19,23 +19,27 @@ import AppFooter from '@/components/AppFooter.vue'
 import CompareBar from '@/components/CompareBar.vue'
 import { useUserStore } from '@/stores/user'
 import { useProgramStore } from '@/stores/programs'
+import { useSettingsStore } from '@/stores/settings'
 
 const { isSignedIn } = useAuth()
 const userStore = useUserStore()
 const programStore = useProgramStore()
+const settingsStore = useSettingsStore()
 
 onMounted(async () => {
+  await settingsStore.fetchUiTranslations()
   await programStore.fetchMeta()
   if (isSignedIn.value) {
-    await userStore.fetchBookmarks()
+    await Promise.all([userStore.fetchBookmarks(), userStore.fetchProfile()])
   }
 })
 
 watch(isSignedIn, async (signedIn) => {
   if (signedIn) {
-    await userStore.fetchBookmarks()
+    await Promise.all([userStore.fetchBookmarks(), userStore.fetchProfile()])
   } else {
     userStore.clearBookmarks()
+    userStore.clearProfile()
   }
 })
 </script>

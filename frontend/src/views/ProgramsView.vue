@@ -5,10 +5,10 @@
       <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <div>
-            <h1 class="programs-title mb-0">All Programs</h1>
+            <h1 class="programs-title mb-0">{{ settingsStore.t('programs.title') }}</h1>
             <p class="programs-subtitle mb-0">
-              <span v-if="programStore.loading">Searching...</span>
-              <span v-else>{{ programStore.total }} programs found</span>
+              <span v-if="programStore.loading">{{ settingsStore.t('programs.searching') }}</span>
+              <span v-else>{{ settingsStore.t('programs.found', { count: programStore.total }) }}</span>
             </p>
           </div>
 
@@ -20,17 +20,17 @@
               v-model="sortBy"
               @change="fetch(1)"
             >
-              <option value="">Sort: Default</option>
-              <option value="tuition_asc">Price: Low → High</option>
-              <option value="tuition_desc">Price: High → Low</option>
-              <option value="duration_asc">Duration: Shortest</option>
-              <option value="duration_desc">Duration: Longest</option>
+              <option value="">{{ settingsStore.t('programs.sort.default') }}</option>
+              <option value="tuition_asc">{{ settingsStore.t('programs.sort.tuitionAsc') }}</option>
+              <option value="tuition_desc">{{ settingsStore.t('programs.sort.tuitionDesc') }}</option>
+              <option value="duration_asc">{{ settingsStore.t('programs.sort.durationAsc') }}</option>
+              <option value="duration_desc">{{ settingsStore.t('programs.sort.durationDesc') }}</option>
             </select>
 
             <!-- Mobile filter toggle -->
             <button class="btn btn-filter-toggle d-lg-none" @click="filterOpen = !filterOpen">
               <i class="bi bi-funnel-fill me-1"></i>
-              Filters
+              {{ settingsStore.t('programs.filters') }}
               <span v-if="activeFilters.length" class="filter-count-badge">{{
                 activeFilters.length
               }}</span>
@@ -46,7 +46,9 @@
               <i class="bi bi-x"></i>
             </button>
           </span>
-          <button class="filter-chip filter-chip-clear" @click="resetAndFetch">Clear all</button>
+          <button class="filter-chip filter-chip-clear" @click="resetAndFetch">
+            {{ settingsStore.t('programs.clearAll') }}
+          </button>
         </div>
       </div>
     </div>
@@ -63,14 +65,16 @@
         <div :class="['col-lg-3', 'filter-sidebar-col', { 'filter-open': filterOpen }]">
           <div class="filter-sidebar">
             <div class="d-flex justify-content-between align-items-center mb-4">
-              <h6 class="filter-sidebar-title mb-0"><i class="bi bi-sliders me-2"></i>Filters</h6>
+              <h6 class="filter-sidebar-title mb-0">
+                <i class="bi bi-sliders me-2"></i>{{ settingsStore.t('programs.filters') }}
+              </h6>
               <div class="d-flex gap-2 align-items-center">
                 <button
                   v-if="activeFilters.length"
                   class="btn-clear-filters"
                   @click="resetAndFetch"
                 >
-                  Clear all
+                  {{ settingsStore.t('programs.clearAll') }}
                 </button>
                 <!-- Mobile close -->
                 <button class="btn-close d-lg-none" @click="filterOpen = false"></button>
@@ -79,13 +83,13 @@
 
             <!-- Search -->
             <div class="filter-group">
-              <div class="filter-label">Search</div>
+              <div class="filter-label">{{ settingsStore.t('programs.filter.search') }}</div>
               <div class="position-relative">
                 <i class="bi bi-search filter-input-icon"></i>
                 <input
                   type="text"
                   class="form-control form-control-sm filter-input"
-                  placeholder="Program, university..."
+                  :placeholder="settingsStore.t('programs.filter.searchPlaceholder')"
                   v-model="programStore.filters.search"
                   @input="debouncedFetch"
                 />
@@ -94,10 +98,10 @@
 
             <!-- Program Type -->
             <div class="filter-group">
-              <div class="filter-label">Program Type</div>
+              <div class="filter-label">{{ settingsStore.t('programs.filter.type') }}</div>
               <div class="type-toggle-group">
                 <button
-                  v-for="t in ['All', 'Master', 'Bootcamp']"
+                  v-for="t in programTypeOptions"
                   :key="t"
                   :class="[
                     'type-toggle-btn',
@@ -115,37 +119,46 @@
                           : 'bi bi-grid',
                     ]"
                   ></i>
-                  {{ t }}
+                  {{ programTypeLabel(t) }}
                 </button>
               </div>
             </div>
 
             <!-- Country -->
             <div class="filter-group">
-              <div class="filter-label">Country</div>
+              <div class="filter-label">{{ settingsStore.t('programs.filter.country') }}</div>
+              <div class="position-relative mb-2">
+                <i class="bi bi-search filter-input-icon"></i>
+                <input
+                  v-model="countrySearch"
+                  type="text"
+                  class="form-control form-control-sm filter-input"
+                  :placeholder="settingsStore.t('programs.filter.countrySearch')"
+                />
+              </div>
               <div class="country-list">
                 <button
-                  v-for="c in ['', ...programStore.meta.countries]"
+                  v-for="c in visibleCountries"
                   :key="c"
                   :class="['country-btn', { active: programStore.filters.country === c }]"
                   @click="setCountry(c)"
                 >
                   <span v-if="c" class="me-1">{{ getCountryFlag(c) }}</span>
                   <span v-else class="me-1">🌐</span>
-                  {{ c || 'All Countries' }}
+                  {{ c || settingsStore.t('programs.filter.allCountries') }}
                 </button>
               </div>
             </div>
 
             <!-- Specialization -->
             <div class="filter-group">
-              <div class="filter-label">Specialization</div>
+              <div class="filter-label">{{ settingsStore.t('programs.filter.specialization') }}</div>
               <div class="position-relative">
                 <i class="bi bi-tag filter-input-icon"></i>
                 <input
                   type="text"
                   class="form-control form-control-sm filter-input"
-                  placeholder="e.g. AI, Cybersecurity..."
+                  :placeholder="settingsStore.t('programs.filter.specializationPlaceholder')"
                   v-model="programStore.filters.specialization"
                   @input="debouncedFetch"
                 />
@@ -154,7 +167,7 @@
 
             <!-- Duration -->
             <div class="filter-group">
-              <div class="filter-label">Max Duration</div>
+              <div class="filter-label">{{ settingsStore.t('programs.filter.maxDuration') }}</div>
               <div class="duration-options">
                 <button
                   v-for="d in durationOptions"
@@ -162,14 +175,14 @@
                   :class="['duration-btn', { active: maxDuration === d.value }]"
                   @click="setDuration(d.value)"
                 >
-                  {{ d.label }}
+                  {{ settingsStore.t(d.labelKey) }}
                 </button>
               </div>
             </div>
 
             <!-- Mobile apply button -->
             <button class="btn btn-primary w-100 d-lg-none mt-2" @click="filterOpen = false">
-              Show {{ programStore.total }} Results
+              {{ settingsStore.t('programs.showResults', { count: programStore.total }) }}
             </button>
           </div>
         </div>
@@ -200,7 +213,12 @@
 
           <!-- Programs grid -->
           <div v-else-if="programStore.programs.length" class="row g-4">
-            <div v-for="p in programStore.programs" :key="p.id" class="col-sm-6 col-xl-4">
+            <div
+              v-for="(p, idx) in programStore.programs"
+              :key="p.id"
+              class="col-sm-6 col-xl-4 animate-in"
+              :style="{ animationDelay: `${idx * 0.05}s` }"
+            >
               <ProgramCard :program="p" />
             </div>
           </div>
@@ -208,16 +226,16 @@
           <!-- Empty state -->
           <div v-else class="empty-state">
             <div class="empty-icon">🔍</div>
-            <h5 class="empty-title">No programs found</h5>
-            <p class="empty-subtitle">Try adjusting your filters or search terms</p>
+            <h5 class="empty-title">{{ settingsStore.t('programs.empty.title') }}</h5>
+            <p class="empty-subtitle">{{ settingsStore.t('programs.empty.subtitle') }}</p>
             <button class="btn btn-outline-primary rounded-pill px-4" @click="resetAndFetch">
-              Clear all filters
+              {{ settingsStore.t('programs.empty.clear') }}
             </button>
           </div>
 
           <!-- Pagination -->
           <div v-if="programStore.totalPages > 1" class="d-flex justify-content-center mt-5">
-            <nav aria-label="Program pages">
+            <nav :aria-label="settingsStore.t('programs.pagination')">
               <ul class="pagination pagination-gpe">
                 <li class="page-item" :class="{ disabled: programStore.currentPage === 1 }">
                   <button class="page-link" @click="fetch(programStore.currentPage - 1)">
@@ -254,23 +272,27 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ProgramCard from '@/components/ProgramCard.vue'
 import { useProgramStore } from '@/stores/programs'
+import { useSettingsStore } from '@/stores/settings'
 import { getCountryFlag } from '@/utils/countryFlags'
 
 const route = useRoute()
 const programStore = useProgramStore()
+const settingsStore = useSettingsStore()
 
 const maxDuration = ref('')
 const sortBy = ref('')
 const filterOpen = ref(false)
+const countrySearch = ref('')
 let debounceTimer = null
 
 const durationOptions = [
-  { value: '', label: 'Any' },
-  { value: '6', label: '≤ 6 mo' },
-  { value: '12', label: '≤ 1 yr' },
-  { value: '18', label: '≤ 1.5 yr' },
-  { value: '24', label: '≤ 2 yr' },
+  { value: '', labelKey: 'programs.duration.any' },
+  { value: '6', labelKey: 'programs.duration.six' },
+  { value: '12', labelKey: 'programs.duration.oneYear' },
+  { value: '18', labelKey: 'programs.duration.oneHalfYear' },
+  { value: '24', labelKey: 'programs.duration.twoYears' },
 ]
+const programTypeOptions = ['All', 'Master', 'Bootcamp']
 
 onMounted(async () => {
   await programStore.fetchMeta()
@@ -347,9 +369,26 @@ const activeFilters = computed(() => {
   if (f.type) list.push({ key: 'type', label: f.type })
   if (f.country) list.push({ key: 'country', label: f.country })
   if (f.specialization) list.push({ key: 'specialization', label: f.specialization })
-  if (f.duration) list.push({ key: 'duration', label: `≤ ${f.duration} months` })
+  if (f.duration) list.push({ key: 'duration', label: settingsStore.t('programs.duration.active', { count: f.duration }) })
   return list
 })
+
+const visibleCountries = computed(() => {
+  const query = countrySearch.value.trim().toLowerCase()
+  const countries = query
+    ? programStore.meta.countries.filter((country) => country.toLowerCase().includes(query))
+    : programStore.meta.countries
+
+  return ['', ...countries]
+})
+
+function programTypeLabel(type) {
+  return {
+    All: settingsStore.t('programs.filter.allTypes'),
+    Master: settingsStore.t('programs.filter.master'),
+    Bootcamp: settingsStore.t('programs.filter.bootcamp'),
+  }[type]
+}
 
 // Smart pagination: show first, last, current ±1, with ellipsis
 const visiblePages = computed(() => {
@@ -560,6 +599,9 @@ const visiblePages = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 .country-btn {
   text-align: left;
@@ -665,15 +707,17 @@ const visiblePages = computed(() => {
   text-align: center;
   padding: 4rem 1rem;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid #e8eef5;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
 }
 .empty-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
+  animation: float 3s ease-in-out infinite;
 }
 .empty-title {
-  font-weight: 700;
+  font-weight: 800;
   color: #1a3a5c;
   margin-bottom: 0.5rem;
 }

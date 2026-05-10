@@ -142,3 +142,7 @@ Open http://localhost:5173
 - **Spain** (1) — UPC Barcelona
 
 Program types: Masters degrees and Bootcamps
+
+
+## Credit to owners of the original spreadsheet data, and to the
+currency API from - https://frankfurter.dev/

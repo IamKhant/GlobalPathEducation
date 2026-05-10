@@ -8,21 +8,21 @@
             Global <span>Path - </span>Education
           </h5>
           <p>
-            Helping students explore IT programs, compare study options, and plan their global education journey.
+            {{ settingsStore.t('footer.description') }}
           </p>
         </div>
 
         <!-- Links -->
         <div class="footer-section">
-          <h6>Explore</h6>
-          <RouterLink to="/programs">Programs</RouterLink>
-          <RouterLink to="/compare">Compare</RouterLink>
-          <RouterLink to="/consult">Consultation</RouterLink>
+          <h6>{{ settingsStore.t('footer.explore') }}</h6>
+          <RouterLink to="/programs">{{ settingsStore.t('footer.programs') }}</RouterLink>
+          <RouterLink to="/compare">{{ settingsStore.t('footer.compare') }}</RouterLink>
+          <RouterLink to="/consult">{{ settingsStore.t('footer.consultation') }}</RouterLink>
         </div>
 
         <!-- Contact -->
         <div class="footer-section">
-          <h6>Contact</h6>
+          <h6>{{ settingsStore.t('footer.contact') }}</h6>
           <a href="mailto:info@globalpaths.edu">
             <i class="bi bi-envelope"></i>
             info@globalpaths.edu
@@ -35,7 +35,7 @@
 
         <!-- Social -->
         <div class="footer-section">
-          <h6>Follow</h6>
+          <h6>{{ settingsStore.t('footer.follow') }}</h6>
           <div class="social-links">
             <a
               v-for="social in socialLinks"
@@ -52,7 +52,7 @@
       </div>
 
       <div class="footer-bottom">
-        <span>© 2026 GlobalPath Education. All rights reserved.</span>
+        <span>{{ settingsStore.t('footer.rights') }}</span>
         <!-- <span class="footer-note">Built for coursework project.</span> -->
       </div>
     </div>
@@ -60,6 +60,10 @@
 </template>
 
 <script setup>
+import { useSettingsStore } from '@/stores/settings'
+
+const settingsStore = useSettingsStore()
+
 const socialLinks = [
   { label: 'Facebook', icon: 'bi bi-facebook', href: '#' },
   { label: 'Instagram', icon: 'bi bi-instagram', href: '#' },
@@ -74,6 +78,18 @@ const socialLinks = [
   padding: 3rem 0 1.5rem;
   background: #0f172a;
   color: #cbd5e1;
+  position: relative;
+}
+
+.app-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #f4a41b, #7c3aed, #2563eb);
+  background-size: 300% 100%;
 }
 
 .footer-main {
@@ -152,9 +168,10 @@ const socialLinks = [
 }
 
 .social-links a:hover {
-  background: #d17d00;
-  color: #ffffff;
-  transform: translateY(-2px);
+  background: #f4a41b;
+  color: #0f172a;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(244, 164, 27, 0.3);
 }
 
 .social-links i {

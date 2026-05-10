@@ -5,6 +5,9 @@ import api from '@/api'
 const COMPARE_STORAGE_KEY = 'gpe-compare-list'
 
 export const useUserStore = defineStore('user', () => {
+  const profile = ref(null)
+  const profileLoading = ref(false)
+  const profileSaving = ref(false)
   const bookmarks = ref([])
   const compareList = ref(loadCompareList())
 
@@ -25,6 +28,10 @@ export const useUserStore = defineStore('user', () => {
   const bookmarkedIds = computed(() => {
     return new Set(bookmarks.value.map((bookmark) => bookmark.program?.id || bookmark.id))
   })
+  const role = computed(() => profile.value?.role || 'student')
+  const isConsultant = computed(() => role.value === 'consultant')
+  const isAdmin = computed(() => role.value === 'admin')
+  const isStaff = computed(() => ['consultant', 'admin'].includes(role.value))
 
   async function fetchBookmarks() {
     try {
@@ -33,6 +40,37 @@ export const useUserStore = defineStore('user', () => {
     } catch (error) {
       console.error(error)
       bookmarks.value = []
+    }
+  }
+
+  async function fetchProfile() {
+    profileLoading.value = true
+
+    try {
+      const { data } = await api.get('/api/users/me')
+      profile.value = data
+      return data
+    } catch (error) {
+      console.error(error)
+      profile.value = null
+      return null
+    } finally {
+      profileLoading.value = false
+    }
+  }
+
+  async function updateProfile(payload) {
+    profileSaving.value = true
+
+    try {
+      const { data } = await api.patch('/api/users/me', payload)
+      profile.value = data
+      return data
+    } catch (error) {
+      console.error(error)
+      throw error
+    } finally {
+      profileSaving.value = false
     }
   }
 
@@ -71,6 +109,10 @@ export const useUserStore = defineStore('user', () => {
     bookmarks.value = []
   }
 
+  function clearProfile() {
+    profile.value = null
+  }
+
   function addToCompare(program) {
     const alreadyExists = compareList.value.some((item) => item.id === program.id)
 
@@ -96,9 +138,19 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    profile,
+    profileLoading,
+    profileSaving,
+    role,
+    isConsultant,
+    isAdmin,
+    isStaff,
     bookmarks,
     compareList,
     bookmarkedIds,
+    fetchProfile,
+    updateProfile,
+    clearProfile,
     fetchBookmarks,
     toggleBookmark,
     clearBookmarks,

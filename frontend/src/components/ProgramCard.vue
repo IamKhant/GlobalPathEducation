@@ -8,11 +8,15 @@
       </span>
       <div class="card-actions" @click.stop>
         <button
-          v-if="isSignedIn"
+          v-if="isSignedIn && !userStore.isStaff"
           class="card-action-btn"
           :class="{ active: userStore.bookmarkedIds.has(program.id) }"
           @click="userStore.toggleBookmark(program)"
-          :title="userStore.bookmarkedIds.has(program.id) ? 'Remove bookmark' : 'Save program'"
+          :title="
+            userStore.bookmarkedIds.has(program.id)
+              ? settingsStore.t('programCard.removeBookmark')
+              : settingsStore.t('programCard.saveProgram')
+          "
         >
           <i
             :class="
@@ -21,10 +25,11 @@
           ></i>
         </button>
         <button
+          v-if="!userStore.isStaff"
           class="card-action-btn"
           :class="{ active: isInCompare }"
           @click="toggleCompare"
-          title="Add to compare"
+          :title="settingsStore.t('programCard.addCompare')"
         >
           <i class="bi bi-bar-chart-steps"></i>
         </button>
@@ -50,7 +55,7 @@
       <div class="mb-3 flex-grow-1">
         <span v-for="tag in specTags" :key="tag" class="spec-tag">{{ tag }}</span>
         <span v-if="extraTagCount > 0" class="spec-tag spec-tag-more"
-          >+{{ extraTagCount }} more</span
+          >+{{ extraTagCount }} {{ settingsStore.t('programCard.more') }}</span
         >
       </div>
 
@@ -60,7 +65,7 @@
           <div class="tuition-basis">{{ feeBasisLabel }}</div>
         </div>
         <div class="duration-pill">
-          <i class="bi bi-clock me-1"></i>{{ program.durationMonths }}mo
+          <i class="bi bi-clock me-1"></i>{{ program.durationMonths }}{{ settingsStore.t('programCard.monthShort') }}
         </div>
       </div>
     </div>
@@ -93,7 +98,24 @@ function toggleCompare() {
   else userStore.addToCompare(props.program)
 }
 
-const countryGradient = computed(() => getCountryGradient(props.program.country))
+const countryGradient = computed(() => {
+  if (props.program.cardColor) {
+    // Admin-set custom color: create a gradient from it
+    return `linear-gradient(135deg, ${props.program.cardColor} 0%, ${adjustColor(props.program.cardColor, -25)} 100%)`
+  }
+  return getCountryGradient(props.program.country)
+})
+
+function adjustColor(hex, amount) {
+  // Darken/lighten a hex color
+  let color = hex.replace('#', '')
+  if (color.length === 3) color = color.split('').map(c => c + c).join('')
+  const num = parseInt(color, 16)
+  const r = Math.max(0, Math.min(255, (num >> 16) + amount))
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00ff) + amount))
+  const b = Math.max(0, Math.min(255, (num & 0x0000ff) + amount))
+  return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`
+}
 const countryFlag = computed(() => getCountryFlag(props.program.country))
 const allTags = computed(
   () =>
@@ -108,7 +130,12 @@ const formattedTuition = computed(() =>
   settingsStore.formatMoney(props.program.tuitionFee, props.program.currency),
 )
 const feeBasisLabel = computed(
-  () => ({ annual: '/ year', total: 'total', per_term: '/ term' })[props.program.feeBasis] || '',
+  () =>
+    ({
+      annual: settingsStore.t('programCard.feeAnnual'),
+      total: settingsStore.t('programCard.feeTotal'),
+      per_term: settingsStore.t('programCard.feeTerm'),
+    })[props.program.feeBasis] || '',
 )
 </script>
 
@@ -118,18 +145,20 @@ const feeBasisLabel = computed(
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(26, 58, 92, 0.07);
   transition:
-    transform 0.22s ease,
-    box-shadow 0.22s ease,
-    border-color 0.22s ease;
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease;
   cursor: pointer;
   background: white;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
+
 .program-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 36px rgba(26, 58, 92, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 42px rgba(26, 58, 92, 0.16);
   border-color: #c5d8f0;
 }
 
@@ -235,6 +264,7 @@ const feeBasisLabel = computed(
   line-height: 1.35;
   margin-bottom: 0.25rem;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

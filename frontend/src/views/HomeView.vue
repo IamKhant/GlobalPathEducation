@@ -8,60 +8,59 @@
         <div class="row align-items-center g-5">
           <!-- Left illustration -->
           <div class="col-lg-6 order-2 order-lg-1">
-            <div class="hero-visual">
-              <img :src="heroImage" alt="Student exploring study abroad opportunities" />
+            <div class="hero-visual animate-in animate-in-delay-3">
+              <img :src="heroImage" alt="Student exploring study abroad opportunities" class="hero-image-float" />
             </div>
           </div>
 
           <!-- Right content -->
           <div class="col-lg-6 order-1 order-lg-2">
             <div class="hero-content">
-              <div class="hero-badge">
+              <div class="hero-badge animate-in">
                 <i class="bi bi-globe2"></i>
-                Global study pathways for students
+                {{ settingsStore.t('home.hero.badge') }}
               </div>
 
-              <h1 class="hero-title">Study abroad and build your future pathway</h1>
+              <h1 class="hero-title animate-in animate-in-delay-1">{{ settingsStore.t('home.hero.title') }}</h1>
 
-              <div class="hero-line"></div>
+              <div class="hero-line animate-in animate-in-delay-2"></div>
 
-              <p class="hero-subtitle">
-                Explore global study programs, compare destinations, and get consultation support
-                before choosing your next education journey.
+              <p class="hero-subtitle animate-in animate-in-delay-2">
+                {{ settingsStore.t('home.hero.subtitle') }}
               </p>
 
-              <form class="hero-search" @submit.prevent="handleSearch">
+              <form class="hero-search animate-in animate-in-delay-3" @submit.prevent="handleSearch">
                 <i class="bi bi-search"></i>
                 <input
                   v-model="searchQuery"
                   type="search"
-                  placeholder="Search programs, countries, or institutions..."
+                  :placeholder="settingsStore.t('home.hero.searchPlaceholder')"
                 />
-                <button type="submit">Search</button>
+                <button type="submit">{{ settingsStore.t('home.hero.searchButton') }}</button>
               </form>
 
-              <div class="hero-actions">
+              <div class="hero-actions animate-in animate-in-delay-4">
                 <RouterLink to="/programs" class="btn btn-primary btn-lg rounded-pill px-4">
-                  Explore Programs
+                  {{ settingsStore.t('home.hero.explorePrograms') }}
                 </RouterLink>
 
                 <RouterLink to="/consult" class="btn btn-outline-primary btn-lg rounded-pill px-4">
-                  Book Consultation
+                  {{ settingsStore.t('home.hero.bookConsultation') }}
                 </RouterLink>
               </div>
 
-              <div class="hero-mini-stats">
+              <div class="hero-mini-stats animate-in animate-in-delay-5">
                 <div>
                   <strong>48+</strong>
-                  <span>Programs</span>
+                  <span>{{ settingsStore.t('home.hero.programs') }}</span>
                 </div>
                 <div>
                   <strong>8</strong>
-                  <span>Countries</span>
+                  <span>{{ settingsStore.t('home.hero.countries') }}</span>
                 </div>
                 <div>
                   <strong>2</strong>
-                  <span>Pathways</span>
+                  <span>{{ settingsStore.t('home.hero.pathways') }}</span>
                 </div>
               </div>
             </div>
@@ -75,16 +74,13 @@
       <div class="container">
         <div class="section-heading">
           <div>
-            <span class="section-kicker">Global destinations</span>
-            <h2>Explore study destinations</h2>
-            <p>
-              Discover popular countries where students can explore study programs, bootcamps, and
-              international education pathways.
-            </p>
+            <span class="section-kicker">{{ settingsStore.t('home.destinations.kicker') }}</span>
+            <h2>{{ settingsStore.t('home.destinations.title') }}</h2>
+            <p>{{ settingsStore.t('home.destinations.subtitle') }}</p>
           </div>
 
           <RouterLink to="/programs" class="view-all-link">
-            View programs
+            {{ settingsStore.t('home.destinations.viewPrograms') }}
             <i class="bi bi-arrow-right"></i>
           </RouterLink>
         </div>
@@ -118,15 +114,15 @@
                 <img :src="country.image" :alt="country.name" />
 
                 <div class="country-slide-overlay">
-                  <span class="country-label">Study destination</span>
+                  <span class="country-label">{{ settingsStore.t('home.destinations.label') }}</span>
                   <h3>{{ country.name }}</h3>
-                  <p>{{ country.description }}</p>
+                  <p>{{ settingsStore.t(country.descriptionKey) }}</p>
 
                   <RouterLink
                     :to="{ path: '/programs', query: { country: country.name } }"
                     class="country-slide-btn"
                   >
-                    Explore {{ country.name }}
+                    {{ settingsStore.t('home.destinations.explore', { country: country.name }) }}
                     <i class="bi bi-arrow-right"></i>
                   </RouterLink>
                 </div>
@@ -141,7 +137,7 @@
             data-bs-slide="prev"
           >
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+            <span class="visually-hidden">{{ settingsStore.t('home.carousel.previous') }}</span>
           </button>
 
           <button
@@ -151,7 +147,7 @@
             data-bs-slide="next"
           >
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
+            <span class="visually-hidden">{{ settingsStore.t('home.carousel.next') }}</span>
           </button>
         </div>
 
@@ -175,20 +171,20 @@
       <div class="container">
         <div class="section-heading">
           <div>
-            <span class="section-kicker">Explore options</span>
-            <h2>Featured programs</h2>
-            <p>Start with a few highlighted programs from the current database.</p>
+            <span class="section-kicker">{{ settingsStore.t('home.featured.kicker') }}</span>
+            <h2>{{ settingsStore.t('home.featured.title') }}</h2>
+            <p>{{ settingsStore.t('home.featured.subtitle') }}</p>
           </div>
 
           <RouterLink to="/programs" class="view-all-link">
-            View all programs
+            {{ settingsStore.t('home.featured.viewAll') }}
             <i class="bi bi-arrow-right"></i>
           </RouterLink>
         </div>
 
         <div v-if="loading" class="loading-state">
           <div class="spinner-border text-primary"></div>
-          <p>Loading featured programs...</p>
+          <p>{{ settingsStore.t('home.featured.loading') }}</p>
         </div>
 
         <div v-else-if="featuredPrograms.length" class="row g-4">
@@ -205,11 +201,12 @@
               <div class="program-meta">
                 <span>
                   <i class="bi bi-geo-alt"></i>
-                  {{ program.city || 'Not specified' }}
+                  {{ program.city || settingsStore.t('home.featured.notSpecified') }}
                 </span>
                 <span>
                   <i class="bi bi-clock"></i>
-                  {{ program.durationMonths || 'N/A' }} months
+                  {{ program.durationMonths || settingsStore.t('home.featured.notAvailable') }}
+                  {{ settingsStore.t('home.featured.months') }}
                 </span>
               </div>
 
@@ -218,14 +215,14 @@
               </p>
 
               <RouterLink :to="`/programs/${program.id}`" class="card-link">
-                View details
+                {{ settingsStore.t('home.featured.viewDetails') }}
                 <i class="bi bi-arrow-right"></i>
               </RouterLink>
             </div>
           </div>
         </div>
 
-        <div v-else class="empty-state">No featured programs available yet.</div>
+        <div v-else class="empty-state">{{ settingsStore.t('home.featured.empty') }}</div>
       </div>
     </section>
 
@@ -233,22 +230,19 @@
     <section class="section-padding soft-section">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Simple process</span>
-          <h2>Plan your study journey in three steps</h2>
-          <p>
-            GlobalPath Education helps students move from discovery to decision with a clear and
-            simple process.
-          </p>
+          <span class="section-kicker">{{ settingsStore.t('home.process.kicker') }}</span>
+          <h2>{{ settingsStore.t('home.process.title') }}</h2>
+          <p>{{ settingsStore.t('home.process.subtitle') }}</p>
         </div>
 
         <div class="row g-4">
-          <div v-for="step in steps" :key="step.title" class="col-md-4">
+          <div v-for="step in steps" :key="step.titleKey" class="col-md-4">
             <div class="step-card">
               <div class="step-icon">
                 <i :class="step.icon"></i>
               </div>
-              <h5>{{ step.title }}</h5>
-              <p>{{ step.text }}</p>
+              <h5>{{ settingsStore.t(step.titleKey) }}</h5>
+              <p>{{ settingsStore.t(step.textKey) }}</p>
             </div>
           </div>
         </div>
@@ -260,24 +254,21 @@
       <div class="container">
         <div class="row align-items-center g-5">
           <div class="col-lg-5">
-            <span class="section-kicker">Why GlobalPath</span>
-            <h2 class="why-title">A clearer way to compare study options</h2>
-            <p class="why-text">
-              Instead of searching across many websites manually, students can explore programs,
-              compare basic details, save options, and request consultation in one place.
-            </p>
+            <span class="section-kicker">{{ settingsStore.t('home.why.kicker') }}</span>
+            <h2 class="why-title">{{ settingsStore.t('home.why.title') }}</h2>
+            <p class="why-text">{{ settingsStore.t('home.why.text') }}</p>
 
             <RouterLink to="/programs" class="btn btn-primary rounded-pill px-4">
-              Start exploring
+              {{ settingsStore.t('home.why.cta') }}
             </RouterLink>
           </div>
 
           <div class="col-lg-7">
             <div class="benefit-grid">
-              <div v-for="benefit in benefits" :key="benefit.title" class="benefit-card">
+              <div v-for="benefit in benefits" :key="benefit.titleKey" class="benefit-card">
                 <i :class="benefit.icon"></i>
-                <h5>{{ benefit.title }}</h5>
-                <p>{{ benefit.text }}</p>
+                <h5>{{ settingsStore.t(benefit.titleKey) }}</h5>
+                <p>{{ settingsStore.t(benefit.textKey) }}</p>
               </div>
             </div>
           </div>
@@ -290,16 +281,13 @@
       <div class="container">
         <div class="cta-card">
           <div>
-            <span class="section-kicker light">Need guidance?</span>
-            <h2>Not sure which study option fits you best?</h2>
-            <p>
-              Book a consultation and get support comparing destinations, fees, study levels,
-              program types, and future opportunities.
-            </p>
+            <span class="section-kicker light">{{ settingsStore.t('home.cta.kicker') }}</span>
+            <h2>{{ settingsStore.t('home.cta.title') }}</h2>
+            <p>{{ settingsStore.t('home.cta.text') }}</p>
           </div>
 
           <RouterLink to="/consult" class="btn btn-light btn-lg rounded-pill px-4">
-            Book Consultation
+            {{ settingsStore.t('home.cta.button') }}
           </RouterLink>
         </div>
       </div>
@@ -310,6 +298,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useSettingsStore } from '@/stores/settings'
 import api from '@/api'
 
 import heroImage from '@/assets/hero/study-abroad-hero.png'
@@ -324,6 +313,7 @@ import newZealandImg from '@/assets/countries/newzealand.jpg'
 import spainImg from '@/assets/countries/spain.jpg'
 
 const router = useRouter()
+const settingsStore = useSettingsStore()
 
 const searchQuery = ref('')
 const featuredPrograms = ref([])
@@ -333,83 +323,83 @@ const countries = [
   {
     name: 'Australia',
     image: australiaImg,
-    description: 'Explore study options in cities like Sydney, Melbourne, Brisbane, and more.',
+    descriptionKey: 'country.australia.description',
   },
   {
     name: 'Canada',
     image: canadaImg,
-    description: 'Discover programs in a diverse and student-friendly education destination.',
+    descriptionKey: 'country.canada.description',
   },
   {
     name: 'Germany',
     image: germanyImg,
-    description: 'Find study pathways in one of Europe’s most popular education destinations.',
+    descriptionKey: 'country.germany.description',
   },
   {
     name: 'Ireland',
     image: irelandImg,
-    description: 'Explore opportunities in a growing education and technology hub.',
+    descriptionKey: 'country.ireland.description',
   },
   {
     name: 'Japan',
     image: japanImg,
-    description: 'Discover study options in one of Asia’s leading education destinations.',
+    descriptionKey: 'country.japan.description',
   },
   {
     name: 'Netherlands',
     image: netherlandsImg,
-    description: 'Find English-taught programs in a highly international European destination.',
+    descriptionKey: 'country.netherlands.description',
   },
   {
     name: 'New Zealand',
     image: newZealandImg,
-    description: 'Explore study options in a peaceful, scenic, and student-friendly country.',
+    descriptionKey: 'country.newZealand.description',
   },
   {
     name: 'Spain',
     image: spainImg,
-    description: 'Discover programs in a vibrant destination with strong culture and lifestyle.',
+    descriptionKey: 'country.spain.description',
   },
 ]
 
 const steps = [
   {
     icon: 'bi bi-search',
-    title: 'Explore programs',
-    text: 'Browse study programs, bootcamps, and learning pathways from different countries.',
+    titleKey: 'home.step.explore.title',
+    textKey: 'home.step.explore.text',
   },
   {
     icon: 'bi bi-bar-chart-steps',
-    title: 'Compare options',
-    text: 'Review destination, duration, tuition, institution, and program type side by side.',
+    titleKey: 'home.step.compare.title',
+    textKey: 'home.step.compare.text',
   },
   {
     icon: 'bi bi-calendar-check',
-    title: 'Book consultation',
-    text: 'Request guidance when you are ready to discuss your study plan and next steps.',
+    titleKey: 'home.step.consult.title',
+    textKey: 'home.step.consult.text',
   },
 ]
 
 const benefits = [
   {
     icon: 'bi bi-globe2',
-    title: 'Global destinations',
-    text: 'Explore programs from different countries in one simple platform.',
+    titleKey: 'home.benefit.destinations.title',
+    textKey: 'home.benefit.destinations.text',
   },
   {
     icon: 'bi bi-bookmark-heart',
-    title: 'Save favourites',
-    text: 'Keep track of programs you are interested in for later review.',
+    titleKey: 'home.benefit.save.title',
+    textKey: 'home.benefit.save.text',
   },
   {
     icon: 'bi bi-bar-chart',
-    title: 'Compare clearly',
-    text: 'Compare key details like country, duration, fee, and program type.',
+    titleKey: 'home.benefit.compare.title',
+    textKey: 'home.benefit.compare.text',
   },
   {
     icon: 'bi bi-person-check',
-    title: 'Consultation support',
-    text: 'Get support before making your study decision.',
+    titleKey: 'home.benefit.consult.title',
+    textKey: 'home.benefit.consult.text',
   },
 ]
 
@@ -423,7 +413,7 @@ function handleSearch() {
 }
 
 function shortDescription(description) {
-  if (!description) return 'Program details will be available soon.'
+  if (!description) return settingsStore.t('home.featured.fallbackDescription')
 
   return description.length > 110 ? `${description.slice(0, 110)}...` : description
 }
@@ -493,6 +483,16 @@ onMounted(fetchFeaturedPrograms)
   object-fit: cover;
   object-position: center;
   display: block;
+  transition: transform 8s ease;
+}
+
+.hero-visual:hover img {
+  transform: scale(1.04);
+}
+
+.hero-image-float {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 1s;
 }
 
 .hero-content {
@@ -528,7 +528,8 @@ onMounted(fetchFeaturedPrograms)
   height: 4px;
   margin: 1.2rem 0 1.4rem;
   border-radius: 999px;
-  background: #38bdf8;
+  background: linear-gradient(90deg, #38bdf8, #2563eb, #7c3aed);
+  background-size: 200% 100%;
 }
 
 .hero-subtitle {
@@ -573,10 +574,13 @@ onMounted(fetchFeaturedPrograms)
   background: #2563eb;
   color: #ffffff;
   font-weight: 700;
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
 }
 
 .hero-search button:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
 }
 
 .hero-actions {
@@ -920,6 +924,15 @@ onMounted(fetchFeaturedPrograms)
   background: #ffffff;
   border: 1px solid #e2e8f0;
   text-align: center;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+  border-color: #bfdbfe;
 }
 
 .step-icon {
@@ -933,6 +946,13 @@ onMounted(fetchFeaturedPrograms)
   background: #dbeafe;
   color: #2563eb;
   font-size: 1.4rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.step-card:hover .step-icon {
+  transform: scale(1.1);
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .step-card h5 {
@@ -972,6 +992,15 @@ onMounted(fetchFeaturedPrograms)
   border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 14px 35px rgba(15, 23, 42, 0.05);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.3s ease;
+}
+
+.benefit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.1);
+  border-color: #bfdbfe;
 }
 
 .benefit-card i {
@@ -985,6 +1014,13 @@ onMounted(fetchFeaturedPrograms)
   background: #eff6ff;
   color: #2563eb;
   font-size: 1.25rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.benefit-card:hover i {
+  transform: scale(1.1);
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .benefit-card h5 {
@@ -1012,6 +1048,32 @@ onMounted(fetchFeaturedPrograms)
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.4s ease;
+}
+
+.cta-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.4), rgba(124, 58, 237, 0.3), rgba(244, 164, 27, 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.cta-card:hover::before {
+  opacity: 1;
+}
+
+.cta-card:hover {
+  box-shadow: 0 24px 60px rgba(37, 99, 235, 0.15);
 }
 
 .cta-card h2 {

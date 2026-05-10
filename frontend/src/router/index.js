@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { waitForClerkLoaded } from '@/auth/clerk'
+import api from '@/api'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,18 +30,42 @@ const router = createRouter({
       path: '/bookmarks',
       name: 'bookmarks',
       component: () => import('@/views/BookmarksView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['student'] },
     },
     {
       path: '/consult',
       name: 'consult',
       component: () => import('@/views/ConsultView.vue'),
+      meta: { studentOnly: true },
+    },
+    {
+      path: '/consultants',
+      name: 'consultants',
+      component: () => import('@/views/ConsultantsDirectoryView.vue'),
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/views/ProfileView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/consultant',
+      name: 'consultant',
+      component: () => import('@/views/ConsultantView.vue'),
+      meta: { requiresAuth: true, roles: ['consultant'] },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
     },
     {
       path: '/sign-in/:pathMatch(.*)*',
@@ -58,7 +83,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const isAuthPage = to.name === 'sign-in' || to.name === 'sign-up'
 
-  if (!to.meta.requiresAuth && !isAuthPage) {
+  if (!to.meta.requiresAuth && !isAuthPage && !to.meta.studentOnly) {
     return true
   }
 
@@ -70,6 +95,51 @@ router.beforeEach(async (to) => {
       query: {
         redirect_url: to.fullPath,
       },
+    }
+  }
+
+  let currentRole = null
+
+  async function fetchCurrentRole() {
+    if (currentRole) return currentRole
+
+    const { data } = await api.get('/api/users/me')
+    currentRole = data?.role || 'student'
+    return currentRole
+  }
+
+  if (to.name === 'dashboard') {
+    try {
+      const role = await fetchCurrentRole()
+
+      if (role === 'admin') return { path: '/admin' }
+      if (role === 'consultant') return { path: '/consultant' }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  if (to.meta.studentOnly && clerk?.isSignedIn) {
+    try {
+      const role = await fetchCurrentRole()
+
+      if (role === 'admin') return { path: '/admin' }
+      if (role === 'consultant') return { path: '/consultant' }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  if (to.meta.roles?.length) {
+    try {
+      const role = await fetchCurrentRole()
+
+      if (!to.meta.roles.includes(role)) {
+        return { path: '/dashboard' }
+      }
+    } catch (error) {
+      console.error(error)
+      return { path: '/dashboard' }
     }
   }
 
