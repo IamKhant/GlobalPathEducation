@@ -6,14 +6,14 @@
       <div class="container" style="position: relative; z-index: 1;">
         <div class="consultants-hero-content">
           <div>
-            <span class="consultants-kicker">Our Team</span>
-            <h1 class="consultants-title animate-in">Meet Our Consultants</h1>
+            <span class="consultants-kicker">{{ settingsStore.t('consultantsDirectory.kicker') }}</span>
+            <h1 class="consultants-title animate-in">{{ settingsStore.t('consultantsDirectory.title') }}</h1>
             <p class="consultants-subtitle animate-in animate-in-delay-1">
-              Our experienced advisors specialize in different regions and study levels. Find the perfect match for your study abroad journey.
+              {{ settingsStore.t('consultantsDirectory.subtitle') }}
             </p>
           </div>
           <RouterLink to="/consult" class="btn btn-gpe-accent rounded-pill px-4 animate-in animate-in-delay-2">
-            <i class="bi bi-calendar-check me-2"></i>Book a Session
+            <i class="bi bi-calendar-check me-2"></i>{{ settingsStore.t('consultantsDirectory.bookSession') }}
           </RouterLink>
         </div>
 
@@ -21,15 +21,15 @@
         <div class="consultants-stats animate-in animate-in-delay-3">
           <div class="consultants-stat">
             <strong>{{ consultants.length }}</strong>
-            <span>Consultants</span>
+            <span>{{ settingsStore.t('consultantsDirectory.stats.consultants') }}</span>
           </div>
           <div class="consultants-stat">
             <strong>{{ uniqueRegions.length }}</strong>
-            <span>Regions Covered</span>
+            <span>{{ settingsStore.t('consultantsDirectory.stats.regions') }}</span>
           </div>
           <div class="consultants-stat">
-            <strong>Free</strong>
-            <span>Initial Session</span>
+            <strong>{{ settingsStore.t('consultantsDirectory.stats.free') }}</strong>
+            <span>{{ settingsStore.t('consultantsDirectory.stats.initialSession') }}</span>
           </div>
         </div>
       </div>
@@ -40,14 +40,14 @@
       <div class="consultants-toolbar animate-in">
         <div class="toolbar-search">
           <i class="bi bi-search"></i>
-          <input v-model="search" type="text" placeholder="Search by name or region..." />
+          <input v-model="search" type="text" :placeholder="settingsStore.t('consultantsDirectory.searchPlaceholder')" />
         </div>
         <div class="toolbar-filters">
           <button
             :class="['toolbar-chip', { active: !selectedRegion }]"
             @click="selectedRegion = ''"
           >
-            All Regions
+            {{ settingsStore.t('consultantsDirectory.filter.allRegions') }}
           </button>
           <button
             v-for="region in uniqueRegions"
@@ -79,12 +79,12 @@
       <!-- Empty state -->
       <div v-else-if="filtered.length === 0" class="consultants-empty animate-in">
         <div class="consultants-empty-icon">🔍</div>
-        <h3 v-if="consultants.length === 0">No consultants available yet</h3>
-        <h3 v-else>No consultants match your search</h3>
-        <p v-if="search || selectedRegion">Try adjusting your search or filter criteria.</p>
-        <p v-else>Check back soon — our team is growing!</p>
+        <h3 v-if="consultants.length === 0">{{ settingsStore.t('consultantsDirectory.empty.noneTitle') }}</h3>
+        <h3 v-else>{{ settingsStore.t('consultantsDirectory.empty.noMatchTitle') }}</h3>
+        <p v-if="search || selectedRegion">{{ settingsStore.t('consultantsDirectory.empty.adjust') }}</p>
+        <p v-else>{{ settingsStore.t('consultantsDirectory.empty.growing') }}</p>
         <button v-if="search || selectedRegion" class="btn btn-gpe-outline rounded-pill" @click="search = ''; selectedRegion = ''">
-          Clear Filters
+          {{ settingsStore.t('consultantsDirectory.clearFilters') }}
         </button>
       </div>
 
@@ -106,7 +106,7 @@
 
           <!-- Body -->
           <div class="consultant-card-body">
-            <div class="consultant-card-role">Study Consultant</div>
+            <div class="consultant-card-role">{{ settingsStore.t('consultantsDirectory.role') }}</div>
             <h3 class="consultant-card-name">{{ name(c) }}</h3>
             <p class="consultant-card-bio">{{ bio(c) }}</p>
 
@@ -122,7 +122,7 @@
               :to="{ path: '/consult', query: { consultantId: c.id } }"
               class="btn btn-gpe-primary btn-sm w-100 rounded-pill"
             >
-              <i class="bi bi-calendar-check me-1"></i>Book Session
+              <i class="bi bi-calendar-check me-1"></i>{{ settingsStore.t('consultantsDirectory.bookButton') }}
             </RouterLink>
           </div>
         </article>
@@ -130,7 +130,7 @@
 
       <!-- Results summary -->
       <div v-if="!loading && filtered.length > 0" class="consultants-results-summary">
-        Showing {{ filtered.length }} of {{ consultants.length }} consultant{{ consultants.length !== 1 ? 's' : '' }}
+        {{ settingsStore.t('consultantsDirectory.results', { shown: filtered.length, total: consultants.length, suffix: consultants.length !== 1 ? 's' : '' }) }}
       </div>
     </div>
   </div>
@@ -140,7 +140,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api'
+import { useSettingsStore } from '@/stores/settings'
 
+const settingsStore = useSettingsStore()
 const consultants = ref([])
 const loading = ref(true)
 const search = ref('')
@@ -189,7 +191,7 @@ const filtered = computed(() => {
 })
 
 function name(c) {
-  return [c.firstName, c.lastName].filter(Boolean).join(' ') || 'GlobalPath Consultant'
+  return [c.firstName, c.lastName].filter(Boolean).join(' ') || settingsStore.t('consultantsDirectory.fallbackName')
 }
 
 function initials(c) {
@@ -198,11 +200,11 @@ function initials(c) {
 
 function areas(c) {
   const list = c.consultantCountries?.map((item) => item.country).filter(Boolean) || []
-  return list.length ? list : ['General']
+  return list.length ? list : [settingsStore.t('consultantsDirectory.fallbackArea')]
 }
 
 function bio(c) {
-  return c.consultantBio || 'Supports students with program selection, destination planning, and application preparation.'
+  return c.consultantBio || settingsStore.t('consultantsDirectory.fallbackBio')
 }
 </script>
 

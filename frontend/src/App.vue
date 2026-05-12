@@ -39,6 +39,7 @@ watch(isSignedIn, async (signedIn) => {
     await Promise.all([userStore.fetchBookmarks(), userStore.fetchProfile()])
   } else {
     userStore.clearBookmarks()
+    userStore.clearCompareList()
     userStore.clearProfile()
   }
 })

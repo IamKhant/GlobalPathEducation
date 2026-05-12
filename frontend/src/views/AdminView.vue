@@ -32,20 +32,80 @@
         <section v-if="activeTab === 'overview'">
           <div class="stats-grid">
             <article class="stat-card">
-              <span>Consultations</span>
+              <span>Total consultations</span>
               <strong>{{ dashboard.totals?.consultations || consultations.length }}</strong>
+              <small>{{ pendingConsultationsCount }} pending review</small>
             </article>
             <article class="stat-card">
               <span>Students</span>
               <strong>{{ dashboard.totals?.students || students.length }}</strong>
+              <small>{{ recentStudentsCount }} added recently</small>
             </article>
             <article class="stat-card">
               <span>Consultants</span>
               <strong>{{ dashboard.totals?.consultants || consultants.length }}</strong>
+              <small>{{ unassignedConsultationsCount }} requests still unassigned</small>
             </article>
             <article class="stat-card accent">
               <span>Programs</span>
               <strong>{{ dashboard.totals?.programs || programs.length }}</strong>
+              <small>{{ recentProgramsCount }} updated recently</small>
+            </article>
+          </div>
+
+          <div class="overview-grid">
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Consultation pipeline</h2>
+                <button class="text-button" type="button" @click="activeTab = 'consultations'">
+                  Manage queue
+                </button>
+              </div>
+              <div class="status-grid">
+                <div v-for="item in overviewStatuses" :key="item.key" class="status-card">
+                  <span :class="['status-dot', `status-dot-${item.key}`]"></span>
+                  <div>
+                    <strong>{{ item.count }}</strong>
+                    <small>{{ item.label }}</small>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Quick actions</h2>
+              </div>
+              <div class="quick-action-grid">
+                <button type="button" class="quick-action-card" @click="activeTab = 'homepage'">
+                  <i class="bi bi-house-door"></i>
+                  <div>
+                    <strong>Edit homepage</strong>
+                    <small>Update hero, featured sections, and CTA copy.</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeTab = 'consultants'">
+                  <i class="bi bi-person-badge"></i>
+                  <div>
+                    <strong>Manage consultants</strong>
+                    <small>Assign regions, update bios, and handle role changes.</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeTab = 'programs'">
+                  <i class="bi bi-mortarboard"></i>
+                  <div>
+                    <strong>Update programs</strong>
+                    <small>Add new programs or adjust details and card colors.</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeTab = 'admins'">
+                  <i class="bi bi-shield-lock"></i>
+                  <div>
+                    <strong>Review admin access</strong>
+                    <small>Promote trusted staff and keep permissions in check.</small>
+                  </div>
+                </button>
+              </div>
             </article>
           </div>
 
@@ -63,18 +123,88 @@
                     <strong>{{ item.fullName }}</strong>
                     <span>{{ item.program?.title || 'General inquiry' }}</span>
                   </div>
-                  <small>{{ statusLabel(item.status) }}</small>
+                  <small>{{ item.consultant ? userName(item.consultant) : statusLabel(item.status) }}</small>
                 </div>
               </div>
             </article>
 
             <article class="panel">
               <div class="panel-heading">
-                <h2>Management still to add later</h2>
+                <h2>Recent updates</h2>
               </div>
-              <div class="todo-list">
-                <span>Homepage slideshow photos</span>
-                <span>Public consultant listing for program pages</span>
+              <div class="compact-list">
+                <div
+                  v-for="program in recentPrograms"
+                  :key="program.id"
+                  class="compact-row"
+                >
+                  <div>
+                    <strong>{{ program.title }}</strong>
+                    <span>{{ program.institution }} - {{ program.country }}</span>
+                  </div>
+                  <small>{{ formatDate(program.updatedAt) }}</small>
+                </div>
+                <div v-if="!recentPrograms.length" class="compact-row">
+                  <div>
+                    <strong>No recent program edits</strong>
+                    <span>Program updates will appear here.</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="two-col">
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Newest students</h2>
+                <button class="text-button" type="button" @click="activeTab = 'students'">
+                  View students
+                </button>
+              </div>
+              <div class="compact-list">
+                <div v-for="student in recentStudents" :key="student.id" class="compact-row">
+                  <div>
+                    <strong>{{ userName(student) }}</strong>
+                    <span>{{ student.email }}</span>
+                  </div>
+                  <small>{{ formatDate(student.createdAt) }}</small>
+                </div>
+                <div v-if="!recentStudents.length" class="compact-row">
+                  <div>
+                    <strong>No recent student signups</strong>
+                    <span>New student accounts will appear here.</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Team coverage</h2>
+                <button class="text-button" type="button" @click="activeTab = 'consultants'">
+                  Open team
+                </button>
+              </div>
+              <div class="coverage-list">
+                <div v-for="consultant in topConsultants" :key="consultant.id" class="coverage-row">
+                  <div class="coverage-user">
+                    <div class="consultant-admin-avatar coverage-avatar">{{ initials(consultant) }}</div>
+                    <div>
+                      <strong>{{ userName(consultant) }}</strong>
+                      <span>{{ countryText(consultant) || 'No region assigned yet' }}</span>
+                    </div>
+                  </div>
+                  <small>{{ consultant.assignedConsultations?.length || 0 }} assigned</small>
+                </div>
+                <div v-if="!topConsultants.length" class="coverage-row">
+                  <div class="coverage-user">
+                    <div>
+                      <strong>No consultants yet</strong>
+                      <span>Promote a staff member to start handling consultations.</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </article>
           </div>
@@ -252,6 +382,19 @@
               <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 0.8rem;"></i>
               <input v-model="adminConsultationSearch" type="text" class="form-control form-control-sm" placeholder="Search by student or program..." style="padding-left: 2rem; border-radius: 8px;" />
             </div>
+          </div>
+          <div class="status-tabs mb-3">
+            <button
+              v-for="tab in adminConsultationStatusTabs"
+              :key="tab.value"
+              type="button"
+              class="status-tab"
+              :class="{ active: adminConsultationStatus === tab.value }"
+              @click="adminConsultationStatus = tab.value"
+            >
+              {{ tab.label }}
+              <span>{{ adminConsultationCount(tab.value) }}</span>
+            </button>
           </div>
           <div class="table-wrap scrollable-list">
             <table class="table align-middle">
@@ -592,6 +735,7 @@ const promoteUserId = ref('')
 const promoteSearch = ref('')
 const adminConsultantSearch = ref('')
 const adminConsultationSearch = ref('')
+const adminConsultationStatus = ref('all')
 const adminStudentSearch = ref('')
 const adminAdminSearch = ref('')
 const adminProgramSearch = ref('')
@@ -602,6 +746,13 @@ const editingHomepageSection = ref('')
 const homepageDraft = ref({})
 const currentAdminId = ref(null)
 const statuses = ['pending', 'confirmed', 'completed', 'cancelled']
+const adminConsultationStatusTabs = [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
 const emptyProgramForm = {
   title: '',
@@ -780,6 +931,24 @@ const previewBenefits = computed(() => {
   ]
 })
 
+const overviewStatuses = computed(() => {
+  const counts = dashboard.value.statusCounts || {}
+  return [
+    { key: 'pending', label: 'Pending', count: counts.pending || 0 },
+    { key: 'confirmed', label: 'Confirmed', count: counts.confirmed || 0 },
+    { key: 'completed', label: 'Completed', count: counts.completed || 0 },
+    { key: 'cancelled', label: 'Cancelled', count: counts.cancelled || 0 },
+  ]
+})
+
+const recentPrograms = computed(() => dashboard.value.recentPrograms || [])
+const recentStudents = computed(() => dashboard.value.recentStudents || [])
+const topConsultants = computed(() => consultants.value.slice(0, 4))
+const pendingConsultationsCount = computed(() => dashboard.value.statusCounts?.pending || 0)
+const recentStudentsCount = computed(() => recentStudents.value.length)
+const recentProgramsCount = computed(() => recentPrograms.value.length)
+const unassignedConsultationsCount = computed(() => consultations.value.filter((item) => !item.consultantId).length)
+
 onMounted(async () => {
   await fetchAll()
   loading.value = false
@@ -916,9 +1085,14 @@ const filteredAdminConsultants = computed(() => {
 })
 
 const filteredAdminConsultations = computed(() => {
+  let list = consultations.value
+  if (adminConsultationStatus.value !== 'all') {
+    list = list.filter((c) => normalizeStatus(c.status) === adminConsultationStatus.value)
+  }
+
   const query = adminConsultationSearch.value.trim().toLowerCase()
-  if (!query) return consultations.value
-  return consultations.value.filter((c) => {
+  if (!query) return list
+  return list.filter((c) => {
     return (
       (c.fullName || '').toLowerCase().includes(query) ||
       (c.program?.title || '').toLowerCase().includes(query) ||
@@ -1110,6 +1284,20 @@ function normalizeStatus(status) {
 function statusLabel(status) {
   return settingsStore.t(`common.status.${normalizeStatus(status)}`)
 }
+
+function adminConsultationCount(status) {
+  if (status === 'all') return consultations.value.length
+  return consultations.value.filter((item) => normalizeStatus(item.status) === status).length
+}
+
+function formatDate(value) {
+  if (!value) return '-'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(value))
+}
 </script>
 
 <style scoped>
@@ -1195,6 +1383,7 @@ function statusLabel(status) {
 }
 
 .stats-grid,
+.overview-grid,
 .two-col,
 .program-workspace,
 .homepage-admin-layout {
@@ -1202,6 +1391,10 @@ function statusLabel(status) {
   gap: 1rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 1rem;
+}
+
+.overview-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
 }
 
 .two-col {
@@ -1804,9 +1997,56 @@ function statusLabel(status) {
 .compact-list,
 .grid-list,
 .program-form,
-.todo-list {
+.quick-action-grid,
+.coverage-list {
   display: grid;
   gap: 0.85rem;
+}
+
+.quick-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quick-action-card {
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  color: #0f172a;
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  text-align: left;
+  width: 100%;
+}
+
+.quick-action-card i {
+  align-items: center;
+  background: #0f172a;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 38px;
+  font-size: 1rem;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.quick-action-card strong,
+.coverage-user strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 850;
+  margin-bottom: 0.2rem;
+}
+
+.quick-action-card small,
+.coverage-user span {
+  color: #64748b;
+  display: block;
+  line-height: 1.5;
 }
 
 .compact-row {
@@ -1816,6 +2056,74 @@ function statusLabel(status) {
 
 .compact-row:first-child {
   border-top: 0;
+}
+
+.status-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-card,
+.coverage-row {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.85rem 0.9rem;
+}
+
+.status-card strong {
+  color: #0f172a;
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+
+.status-card small,
+.coverage-row small {
+  color: #64748b;
+}
+
+.status-dot {
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 12px;
+  height: 12px;
+  width: 12px;
+}
+
+.status-dot-pending {
+  background: #f97316;
+}
+
+.status-dot-confirmed {
+  background: #22c55e;
+}
+
+.status-dot-completed {
+  background: #64748b;
+}
+
+.status-dot-cancelled {
+  background: #ef4444;
+}
+
+.coverage-user {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.coverage-avatar {
+  flex: 0 0 38px;
+  height: 38px;
+  width: 38px;
+  font-size: 0.76rem;
 }
 
 .table-wrap {
@@ -1958,6 +2266,7 @@ label span {
   }
 
   .stats-grid,
+  .overview-grid,
   .two-col,
   .homepage-admin-layout,
   .program-workspace,
@@ -1986,6 +2295,11 @@ label span {
   .consultant-admin-top {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .quick-action-grid,
+  .status-grid {
+    grid-template-columns: 1fr;
   }
 }
 

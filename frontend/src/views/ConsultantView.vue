@@ -3,16 +3,16 @@
     <div class="container">
       <header class="consultant-header">
         <div>
-          <p class="eyebrow mb-2">Consultant Workspace</p>
-          <h1 class="section-heading mb-1">Manage student consultations</h1>
+          <p class="eyebrow mb-2">{{ settingsStore.t('consultant.kicker') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('consultant.title') }}</h1>
           <p class="section-subheading mb-0">
-            Review assigned requests, inspect student profiles, and keep consultation status up to date.
+            {{ settingsStore.t('consultant.subtitle') }}
           </p>
         </div>
         <div class="role-pill">{{ role || 'consultant' }}</div>
       </header>
 
-      <nav class="workspace-tabs" aria-label="Consultant workspace sections">
+      <nav class="workspace-tabs" :aria-label="settingsStore.t('consultant.kicker')">
         <button
           v-for="tab in tabs"
           :key="tab.key"
@@ -22,39 +22,99 @@
           @click="activeTab = tab.key"
         >
           <i :class="tab.icon"></i>
-          <span>{{ tab.label }}</span>
+          <span>{{ settingsStore.t(tab.labelKey) }}</span>
         </button>
       </nav>
 
-      <div v-if="loading" class="loading-panel">Loading consultant workspace...</div>
+      <div v-if="loading" class="loading-panel">{{ settingsStore.t('consultant.loading') }}</div>
 
       <template v-else>
         <section v-if="activeTab === 'overview'" class="workspace-section">
           <div class="stats-grid">
             <article class="stat-card">
-              <span>Total requests</span>
+              <span>{{ settingsStore.t('consultant.stats.totalRequests') }}</span>
               <strong>{{ dashboard.totals?.consultations || consultations.length }}</strong>
+              <small>{{ settingsStore.t('consultant.stats.awaitingAction', { count: pendingCount }) }}</small>
             </article>
             <article class="stat-card accent">
-              <span>Pending requests</span>
-              <strong>{{ statusCount('pending') }}</strong>
+              <span>{{ settingsStore.t('consultant.stats.pendingRequests') }}</span>
+              <strong>{{ pendingCount }}</strong>
+              <small>{{ settingsStore.t('consultant.stats.alreadyConfirmed', { count: confirmedCount }) }}</small>
             </article>
             <article class="stat-card">
-              <span>Students</span>
+              <span>{{ settingsStore.t('consultant.stats.students') }}</span>
               <strong>{{ dashboard.totals?.students || students.length }}</strong>
+              <small>{{ settingsStore.t('consultant.stats.profilesReady', { count: studentProfilesReady }) }}</small>
             </article>
             <article class="stat-card">
-              <span>Assigned areas</span>
+              <span>{{ settingsStore.t('consultant.stats.assignedAreas') }}</span>
               <strong>{{ dashboard.totals?.assignedCountries || 0 }}</strong>
+              <small>{{ dashboard.countries?.length ? dashboard.countries.join(', ') : settingsStore.t('consultant.stats.noAreas') }}</small>
             </article>
           </div>
 
           <div class="overview-grid">
             <article class="panel">
               <div class="panel-heading">
-                <h2>Recent consultations</h2>
+                <h2>{{ settingsStore.t('consultant.overview.pipeline') }}</h2>
                 <button type="button" class="text-button" @click="activeTab = 'consultations'">
-                  View all
+                  {{ settingsStore.t('consultant.overview.openQueue') }}
+                </button>
+              </div>
+              <div class="status-grid">
+                <div v-for="item in overviewStatuses" :key="item.key" class="status-card">
+                  <span :class="['status-dot', `status-dot-${item.key}`]"></span>
+                  <div>
+                    <strong>{{ item.count }}</strong>
+                    <small>{{ item.label }}</small>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>{{ settingsStore.t('consultant.overview.quickActions') }}</h2>
+              </div>
+              <div class="quick-action-grid">
+                <button type="button" class="quick-action-card" @click="activeTab = 'consultations'">
+                  <i class="bi bi-calendar-check"></i>
+                  <div>
+                    <strong>{{ settingsStore.t('consultant.overview.reviewRequests') }}</strong>
+                    <small>{{ settingsStore.t('consultant.overview.reviewRequestsDesc') }}</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeTab = 'students'">
+                  <i class="bi bi-people"></i>
+                  <div>
+                    <strong>{{ settingsStore.t('consultant.overview.openProfiles') }}</strong>
+                    <small>{{ settingsStore.t('consultant.overview.openProfilesDesc') }}</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeTab = 'overview'">
+                  <i class="bi bi-geo-alt"></i>
+                  <div>
+                    <strong>{{ settingsStore.t('consultant.overview.checkCoverage') }}</strong>
+                    <small>{{ assignedAreasText }}</small>
+                  </div>
+                </button>
+                <button type="button" class="quick-action-card" @click="activeStatus = 'pending'; activeTab = 'consultations'">
+                  <i class="bi bi-clock-history"></i>
+                  <div>
+                    <strong>{{ settingsStore.t('consultant.overview.focusPending') }}</strong>
+                    <small>{{ settingsStore.t('consultant.overview.focusPendingDesc', { count: pendingCount }) }}</small>
+                  </div>
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div class="two-col">
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>{{ settingsStore.t('consultant.overview.recentConsultations') }}</h2>
+                <button type="button" class="text-button" @click="activeTab = 'consultations'">
+                  {{ settingsStore.t('consultant.overview.viewAll') }}
                 </button>
               </div>
               <div class="compact-list">
@@ -65,7 +125,7 @@
                 >
                   <div>
                     <strong>{{ consultation.fullName }}</strong>
-                    <span>{{ consultation.program?.title || 'General inquiry' }}</span>
+                    <span>{{ consultation.program?.title || settingsStore.t('consultant.consultations.generalInquiry') }}</span>
                   </div>
                   <span class="status-badge" :class="statusClass(consultation.status)">
                     {{ statusLabel(consultation.status) }}
@@ -76,9 +136,9 @@
 
             <article class="panel">
               <div class="panel-heading">
-                <h2>Recent students</h2>
+                <h2>{{ settingsStore.t('consultant.overview.recentStudents') }}</h2>
                 <button type="button" class="text-button" @click="activeTab = 'students'">
-                  View all
+                  {{ settingsStore.t('consultant.overview.viewAll') }}
                 </button>
               </div>
               <div class="compact-list">
@@ -87,7 +147,41 @@
                     <strong>{{ studentName(student) }}</strong>
                     <span>{{ student.email }}</span>
                   </div>
-                  <small>{{ student.preferredDestination || 'No destination yet' }}</small>
+                  <small>{{ student.preferredDestination || settingsStore.t('consultant.overview.noDestination') }}</small>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="two-col">
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>{{ settingsStore.t('consultant.overview.assignedRegions') }}</h2>
+              </div>
+              <div class="area-chip-row">
+                <span v-for="country in dashboard.countries || []" :key="country">{{ country }}</span>
+                <span v-if="!(dashboard.countries || []).length" class="area-chip-muted">{{ settingsStore.t('consultant.filter.noRegionsAssigned') }}</span>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>{{ settingsStore.t('consultant.overview.studentReadiness') }}</h2>
+              </div>
+              <div class="compact-list">
+                <div class="compact-row">
+                  <div>
+                    <strong>{{ studentProfilesReady }}</strong>
+                    <span>{{ settingsStore.t('consultant.overview.profilesWithPreferences') }}</span>
+                  </div>
+                  <small>{{ students.length ? `${Math.round((studentProfilesReady / students.length) * 100)}%` : '0%' }}</small>
+                </div>
+                <div class="compact-row">
+                  <div>
+                    <strong>{{ students.length - studentProfilesReady }}</strong>
+                    <span>{{ settingsStore.t('consultant.overview.studentsMissingDetails') }}</span>
+                  </div>
+                  <small>{{ settingsStore.t('consultant.overview.needsFollowUp') }}</small>
                 </div>
               </div>
             </article>
@@ -96,6 +190,19 @@
 
         <section v-if="activeTab === 'consultations'" class="workspace-section">
           <div class="toolbar">
+            <div>
+              <h2>{{ settingsStore.t('consultant.consultations.title') }}</h2>
+              <p>{{ settingsStore.t('consultant.consultations.subtitle') }}</p>
+            </div>
+            <input
+              v-model="consultationSearch"
+              class="form-control search-input"
+              type="search"
+              :placeholder="settingsStore.t('consultant.consultations.searchPlaceholder')"
+            />
+          </div>
+
+          <div class="toolbar toolbar-secondary">
             <div class="status-tabs">
               <button
                 v-for="tab in statusTabs"
@@ -105,15 +212,15 @@
                 :class="{ active: activeStatus === tab.value }"
                 @click="activeStatus = tab.value"
               >
-                {{ tab.label }}
+                {{ settingsStore.t(tab.labelKey) }}
                 <span>{{ statusCount(tab.value) }}</span>
               </button>
             </div>
           </div>
 
           <div v-if="filteredConsultations.length === 0" class="empty-state">
-            <h5>No consultation requests</h5>
-            <p class="text-muted mb-0">There are no requests for this status yet.</p>
+            <h5>{{ settingsStore.t('consultant.consultations.emptyTitle') }}</h5>
+            <p class="text-muted mb-0">{{ settingsStore.t('consultant.consultations.emptySubtitle') }}</p>
           </div>
 
           <div v-else class="consultation-list">
@@ -139,8 +246,8 @@
                 </div>
 
                 <div class="consultation-program">
-                  <span>Program</span>
-                  <strong>{{ consultation.program?.title || 'General inquiry' }}</strong>
+                  <span>{{ settingsStore.t('consultant.consultations.program') }}</span>
+                  <strong>{{ consultation.program?.title || settingsStore.t('consultant.consultations.generalInquiry') }}</strong>
                   <small v-if="consultation.program">
                     {{ consultation.program.institution }} - {{ consultation.program.country }}
                   </small>
@@ -149,6 +256,11 @@
                 <p v-if="consultation.message" class="consultation-message">
                   {{ consultation.message }}
                 </p>
+
+                <div class="consultation-meta-row">
+                  <span><i class="bi bi-geo-alt"></i>{{ consultation.user?.preferredDestination || consultation.preferredCountry || settingsStore.t('consultant.overview.noDestination') }}</span>
+                  <span><i class="bi bi-calendar-event"></i>{{ formatDate(consultation.createdAt) }}</span>
+                </div>
 
                 <div class="status-actions">
                   <div class="dropdown">
@@ -168,28 +280,28 @@
               </div>
 
               <aside class="student-profile">
-                <h3>Student Profile</h3>
+                <h3>{{ settingsStore.t('consultant.consultations.studentProfile') }}</h3>
                 <dl>
                   <div>
-                    <dt>Nationality</dt>
+                    <dt>{{ settingsStore.t('consultant.students.nationality') }}</dt>
                     <dd>{{ consultation.user?.nationality || '-' }}</dd>
                   </div>
                   <div>
-                    <dt>Current Level</dt>
+                    <dt>{{ settingsStore.t('consultant.students.currentEducation') }}</dt>
                     <dd>{{ profileValue(consultation.user?.currentEducationLevel) }}</dd>
                   </div>
                   <div>
-                    <dt>Preferred Level</dt>
+                    <dt>{{ settingsStore.t('consultant.students.preferredLevel') }}</dt>
                     <dd>{{ profileValue(consultation.user?.preferredStudyLevel) }}</dd>
                   </div>
                   <div>
-                    <dt>Destination</dt>
+                    <dt>{{ settingsStore.t('consultant.students.destination') }}</dt>
                     <dd>
                       {{ consultation.user?.preferredDestination || consultation.preferredCountry || '-' }}
                     </dd>
                   </div>
                   <div>
-                    <dt>Requested</dt>
+                    <dt>{{ settingsStore.t('consultant.consultations.requested') }}</dt>
                     <dd>{{ formatDate(consultation.createdAt) }}</dd>
                   </div>
                 </dl>
@@ -201,15 +313,30 @@
         <section v-if="activeTab === 'students'" class="workspace-section">
           <div class="toolbar">
             <div>
-              <h2>Student profiles</h2>
-              <p>Review profile details, bookmarks, and consultation history.</p>
+              <h2>{{ settingsStore.t('consultant.students.title') }}</h2>
+              <p>{{ settingsStore.t('consultant.students.subtitle') }}</p>
             </div>
             <input
               v-model="studentSearch"
               class="form-control search-input"
               type="search"
-              placeholder="Search students"
+              :placeholder="settingsStore.t('consultant.students.searchPlaceholder')"
             />
+          </div>
+          <div class="toolbar toolbar-secondary">
+            <div class="status-tabs">
+              <button
+                v-for="tab in studentFilterTabs"
+                :key="tab.value"
+                type="button"
+                class="status-tab"
+                :class="{ active: studentFilter === tab.value }"
+                @click="studentFilter = tab.value"
+              >
+                {{ settingsStore.t(tab.labelKey) }}
+                <span>{{ studentFilterCount(tab.value) }}</span>
+              </button>
+            </div>
           </div>
 
           <div class="student-grid">
@@ -219,29 +346,34 @@
                   <h3>{{ studentName(student) }}</h3>
                   <p>{{ student.email }}</p>
                 </div>
-                <span>{{ student.consultations?.length || 0 }} requests</span>
+                <span>{{ settingsStore.t('consultant.students.requests', { count: student.consultations?.length || 0 }) }}</span>
               </div>
               <dl class="profile-list">
                 <div>
-                  <dt>Nationality</dt>
+                  <dt>{{ settingsStore.t('consultant.students.nationality') }}</dt>
                   <dd>{{ student.nationality || '-' }}</dd>
                 </div>
                 <div>
-                  <dt>Current education</dt>
+                  <dt>{{ settingsStore.t('consultant.students.currentEducation') }}</dt>
                   <dd>{{ profileValue(student.currentEducationLevel) }}</dd>
                 </div>
                 <div>
-                  <dt>Preferred level</dt>
+                  <dt>{{ settingsStore.t('consultant.students.preferredLevel') }}</dt>
                   <dd>{{ profileValue(student.preferredStudyLevel) }}</dd>
                 </div>
                 <div>
-                  <dt>Destination</dt>
+                  <dt>{{ settingsStore.t('consultant.students.destination') }}</dt>
                   <dd>{{ student.preferredDestination || '-' }}</dd>
                 </div>
               </dl>
+              <div class="student-card-tags">
+                <span v-if="student.preferredDestination">{{ student.preferredDestination }}</span>
+                <span v-if="student.preferredStudyLevel">{{ profileValue(student.preferredStudyLevel) }}</span>
+                <span v-if="student.currentEducationLevel">{{ profileValue(student.currentEducationLevel) }}</span>
+              </div>
               <div class="student-footer">
-                <span>{{ student.bookmarks?.length || 0 }} saved programs</span>
-                <small>Joined {{ formatDate(student.createdAt) }}</small>
+                <span>{{ settingsStore.t('consultant.students.savedPrograms', { count: student.bookmarks?.length || 0 }) }}</span>
+                <small>{{ settingsStore.t('consultant.students.joined', { date: formatDate(student.createdAt) }) }}</small>
               </div>
             </article>
           </div>
@@ -266,36 +398,97 @@ const consultations = ref([])
 const students = ref([])
 const activeTab = ref('overview')
 const activeStatus = ref('all')
+const consultationSearch = ref('')
 const studentSearch = ref('')
+const studentFilter = ref('all')
 
 const tabs = [
-  { key: 'overview', label: 'Overview', icon: 'bi bi-grid-1x2' },
-  { key: 'consultations', label: 'Consultations', icon: 'bi bi-calendar-check' },
-  { key: 'students', label: 'Students', icon: 'bi bi-people' },
+  { key: 'overview', labelKey: 'consultant.tab.overview', icon: 'bi bi-grid-1x2' },
+  { key: 'consultations', labelKey: 'consultant.tab.consultations', icon: 'bi bi-calendar-check' },
+  { key: 'students', labelKey: 'consultant.tab.students', icon: 'bi bi-people' },
 ]
 const statusTabs = [
-  { value: 'all', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'all', labelKey: 'consultant.filter.all' },
+  { value: 'pending', labelKey: 'consultant.filter.pending' },
+  { value: 'confirmed', labelKey: 'consultant.filter.confirmed' },
+  { value: 'completed', labelKey: 'consultant.filter.completed' },
+  { value: 'cancelled', labelKey: 'consultant.filter.cancelled' },
 ]
 const actionStatuses = ['pending', 'confirmed', 'completed', 'cancelled']
+const studentFilterTabs = [
+  { value: 'all', labelKey: 'consultant.filter.all' },
+  { value: 'profile-ready', labelKey: 'consultant.overview.profileReady' },
+  { value: 'needs-followup', labelKey: 'consultant.overview.needsFollowupShort' },
+  { value: 'bookmarked', labelKey: 'consultant.overview.bookmarked' },
+]
 
 const recentConsultations = computed(() => consultations.value.slice(0, 5))
 const recentStudents = computed(() => students.value.slice(0, 5))
+const pendingCount = computed(() => statusCount('pending'))
+const confirmedCount = computed(() => statusCount('confirmed'))
+const assignedAreasText = computed(() => {
+  const countries = dashboard.value.countries || []
+  if (!countries.length) return settingsStore.t('consultant.filter.noRegionsAssigned')
+  return countries.length > 2 ? `${countries.slice(0, 2).join(', ')} +${countries.length - 2} more` : countries.join(', ')
+})
+const studentProfilesReady = computed(() => {
+  return students.value.filter((student) => {
+    return Boolean(
+      student.preferredDestination ||
+        student.preferredStudyLevel ||
+        student.currentEducationLevel,
+    )
+  }).length
+})
+const overviewStatuses = computed(() => {
+  return [
+    { key: 'pending', label: settingsStore.t('consultant.filter.pending'), count: pendingCount.value },
+    { key: 'confirmed', label: settingsStore.t('consultant.filter.confirmed'), count: confirmedCount.value },
+    { key: 'completed', label: settingsStore.t('consultant.filter.completed'), count: statusCount('completed') },
+    { key: 'cancelled', label: settingsStore.t('consultant.filter.cancelled'), count: statusCount('cancelled') },
+  ]
+})
 
 const filteredConsultations = computed(() => {
-  if (activeStatus.value === 'all') return consultations.value
-  return consultations.value.filter(
-    (consultation) => normalizeStatus(consultation.status) === activeStatus.value,
+  let list = consultations.value
+
+  if (activeStatus.value !== 'all') {
+    list = list.filter(
+      (consultation) => normalizeStatus(consultation.status) === activeStatus.value,
+    )
+  }
+
+  const query = consultationSearch.value.trim().toLowerCase()
+  if (!query) return list
+
+  return list.filter((consultation) =>
+    [
+      consultation.fullName,
+      consultation.email,
+      consultation.program?.title,
+      consultation.program?.institution,
+      consultation.user?.preferredDestination,
+      consultation.preferredCountry,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
   )
 })
 
 const filteredStudents = computed(() => {
+  let list = students.value
+
+  if (studentFilter.value === 'profile-ready') {
+    list = list.filter((student) => hasProfileContext(student))
+  } else if (studentFilter.value === 'needs-followup') {
+    list = list.filter((student) => !hasProfileContext(student))
+  } else if (studentFilter.value === 'bookmarked') {
+    list = list.filter((student) => (student.bookmarks?.length || 0) > 0)
+  }
+
   const query = studentSearch.value.trim().toLowerCase()
-  if (!query) return students.value
-  return students.value.filter((student) =>
+  if (!query) return list
+  return list.filter((student) =>
     [
       studentName(student),
       student.email,
@@ -372,18 +565,25 @@ function statusClass(status) {
   }[normalizeStatus(status)]
 }
 
-function statusButtonClass(status) {
-  return {
-    pending: 'btn-outline-warning',
-    confirmed: 'btn-outline-success',
-    completed: 'btn-outline-secondary',
-    cancelled: 'btn-outline-danger',
-  }[status]
-}
-
 function profileValue(value) {
   if (!value) return '-'
   return value.startsWith('profile.') ? settingsStore.t(value) : value
+}
+
+function hasProfileContext(student) {
+  return Boolean(
+    student.preferredDestination ||
+      student.preferredStudyLevel ||
+      student.currentEducationLevel,
+  )
+}
+
+function studentFilterCount(filter) {
+  if (filter === 'all') return students.value.length
+  if (filter === 'profile-ready') return students.value.filter((student) => hasProfileContext(student)).length
+  if (filter === 'needs-followup') return students.value.filter((student) => !hasProfileContext(student)).length
+  if (filter === 'bookmarked') return students.value.filter((student) => (student.bookmarks?.length || 0) > 0).length
+  return 0
 }
 
 function normalizeStatus(status) {
@@ -468,8 +668,6 @@ function formatDate(value) {
 .empty-state,
 .consultation-card,
 .student-card,
-.program-form-panel,
-.program-list-panel,
 .stat-card {
   background: #fff;
   border: 1px solid #e5edf7;
@@ -495,13 +693,12 @@ function formatDate(value) {
 }
 
 .stat-card span,
+.stat-card small,
 .compact-row span,
 .compact-row small,
 .toolbar p,
 .student-card p,
-.student-footer,
-.program-admin-row p,
-.program-admin-row small {
+.student-footer {
   color: #64748b;
 }
 
@@ -518,23 +715,20 @@ function formatDate(value) {
 }
 
 .overview-grid,
-.program-workspace {
+.two-col {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.panel,
-.program-form-panel,
-.program-list-panel {
+.panel {
   padding: 1rem;
 }
 
 .panel-heading,
 .toolbar,
 .consultation-top,
-.student-card-top,
-.program-admin-row {
+.student-card-top {
   align-items: flex-start;
   display: flex;
   gap: 1rem;
@@ -544,8 +738,7 @@ function formatDate(value) {
 .panel-heading h2,
 .toolbar h2,
 .student-profile h3,
-.student-card h3,
-.program-admin-row h3 {
+.student-card h3 {
   color: #0f172a;
   font-size: 1rem;
   font-weight: 850;
@@ -562,10 +755,54 @@ function formatDate(value) {
 .compact-list,
 .consultation-list,
 .student-grid,
-.program-admin-list,
-.program-form {
+.quick-action-grid,
+.coverage-list {
   display: grid;
   gap: 0.85rem;
+}
+
+.quick-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quick-action-card {
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  color: #0f172a;
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  text-align: left;
+  width: 100%;
+}
+
+.quick-action-card i {
+  align-items: center;
+  background: #0f172a;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 38px;
+  font-size: 1rem;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.quick-action-card strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 850;
+  margin-bottom: 0.2rem;
+}
+
+.quick-action-card small {
+  color: #64748b;
+  display: block;
+  line-height: 1.5;
 }
 
 .compact-row {
@@ -588,6 +825,10 @@ function formatDate(value) {
 
 .toolbar {
   margin-bottom: 1rem;
+}
+
+.toolbar-secondary {
+  margin-top: -0.35rem;
 }
 
 .search-input {
@@ -626,6 +867,57 @@ function formatDate(value) {
   background: #f4a41b;
   border-color: #f4a41b;
   color: #0f172a;
+}
+
+.status-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-card {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+}
+
+.status-card strong {
+  color: #0f172a;
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+
+.status-card small {
+  color: #64748b;
+}
+
+.status-dot {
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 12px;
+  height: 12px;
+  width: 12px;
+}
+
+.status-dot-pending {
+  background: #f97316;
+}
+
+.status-dot-confirmed {
+  background: #22c55e;
+}
+
+.status-dot-completed {
+  background: #64748b;
+}
+
+.status-dot-cancelled {
+  background: #ef4444;
 }
 
 .consultation-card {
@@ -717,6 +1009,19 @@ function formatDate(value) {
   margin: 1rem 0 0;
 }
 
+.consultation-meta-row {
+  color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.84rem;
+  margin-top: 0.9rem;
+}
+
+.consultation-meta-row i {
+  margin-right: 0.35rem;
+}
+
 .status-actions {
   display: flex;
   flex-wrap: wrap;
@@ -767,6 +1072,34 @@ function formatDate(value) {
   padding: 0.35rem 0.6rem;
 }
 
+.student-card-tags,
+.area-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.student-card-tags {
+  margin-top: 0.85rem;
+}
+
+.student-card-tags span,
+.area-chip-row span {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #0f4d85;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0.24rem 0.5rem;
+}
+
+.area-chip-row .area-chip-muted {
+  background: #f8fafc;
+  border-color: #e5edf7;
+  color: #64748b;
+}
+
 .student-footer {
   border-top: 1px solid #eef2f7;
   display: flex;
@@ -776,41 +1109,11 @@ function formatDate(value) {
   padding-top: 0.85rem;
 }
 
-.program-workspace {
-  grid-template-columns: 400px minmax(0, 1fr);
-}
-
-.form-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.program-admin-row {
-  background: #fff;
-  border: 1px solid #e5edf7;
-  border-radius: 8px;
-  padding: 0.85rem;
-}
-
-.program-admin-row h3 {
-  margin-bottom: 0.2rem;
-}
-
-.program-row-actions {
-  align-items: flex-end;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-align: right;
-}
-
 @media (max-width: 991.98px) {
   .consultant-header,
   .toolbar,
   .consultation-top,
-  .student-card-top,
-  .program-admin-row {
+  .student-card-top {
     align-items: stretch;
     flex-direction: column;
   }
@@ -825,8 +1128,10 @@ function formatDate(value) {
 
   .stats-grid,
   .overview-grid,
+  .two-col,
   .student-grid,
-  .program-workspace {
+  .quick-action-grid,
+  .status-grid {
     grid-template-columns: 1fr;
   }
 
@@ -843,12 +1148,6 @@ function formatDate(value) {
 
   .search-input {
     max-width: none;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .form-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -40,20 +40,33 @@
         <!-- Saved Programs -->
         <div class="col-lg-6">
           <div class="bg-white rounded-3 p-4 shadow-sm h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
               <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">{{ settingsStore.t('dashboard.savedPrograms') }}</h5>
               <RouterLink to="/bookmarks" class="btn btn-sm btn-gpe-outline">{{ settingsStore.t('dashboard.viewAll') }}</RouterLink>
+            </div>
+            <div v-if="userStore.bookmarks.length > 0" class="dashboard-toolbar mb-3">
+              <div class="dashboard-search">
+                <i class="bi bi-search"></i>
+                <input
+                  v-model="bookmarkSearch"
+                  type="search"
+                  :placeholder="settingsStore.t('programs.filters.search')"
+                />
+              </div>
             </div>
             <div v-if="userStore.bookmarks.length === 0" class="text-center py-3 text-muted small">
               <div class="fs-3 mb-2">🔖</div>{{ settingsStore.t('dashboard.noSaved') }}
             </div>
             <div v-else>
-              <div v-for="b in userStore.bookmarks.slice(0, 4)" :key="b.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div v-for="b in filteredBookmarks.slice(0, 4)" :key="b.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
                   <div class="small fw-semibold" style="color:var(--gpe-primary)">{{ b.program.title }}</div>
                   <div class="small text-muted">{{ b.program.institution }} · {{ b.program.country }}</div>
                 </div>
                 <RouterLink :to="`/programs/${b.program.id}`" class="btn btn-sm btn-outline-secondary">{{ settingsStore.t('common.view') }}</RouterLink>
+              </div>
+              <div v-if="filteredBookmarks.length === 0" class="text-center py-3 text-muted small">
+                No saved programs match your search.
               </div>
             </div>
           </div>
@@ -62,16 +75,39 @@
         <!-- Consultations -->
         <div class="col-lg-6">
           <div class="bg-white rounded-3 p-4 shadow-sm h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
               <h5 class="fw-bold mb-0" style="color:var(--gpe-primary)">{{ settingsStore.t('dashboard.history') }}</h5>
               <RouterLink to="/consult" class="btn btn-sm btn-gpe-outline">{{ settingsStore.t('dashboard.bookNew') }}</RouterLink>
+            </div>
+            <div v-if="consultations.length > 0" class="dashboard-toolbar dashboard-toolbar-stack mb-3">
+              <div class="status-tabs">
+                <button
+                  v-for="tab in consultationStatusTabs"
+                  :key="tab.value"
+                  type="button"
+                  class="status-tab"
+                  :class="{ active: consultationStatus === tab.value }"
+                  @click="consultationStatus = tab.value"
+                >
+                  {{ tab.label }}
+                  <span>{{ consultationCount(tab.value) }}</span>
+                </button>
+              </div>
+              <div class="dashboard-search">
+                <i class="bi bi-search"></i>
+                <input
+                  v-model="consultationSearch"
+                  type="search"
+                  placeholder="Search consultation or program"
+                />
+              </div>
             </div>
             <div v-if="loading" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>
             <div v-else-if="consultations.length === 0" class="text-center py-3 text-muted small">
               <div class="fs-3 mb-2">📅</div>{{ settingsStore.t('dashboard.noConsultations') }}
             </div>
             <div v-else>
-              <div v-for="c in consultations" :key="c.id" class="py-2 border-bottom">
+              <div v-for="c in filteredConsultations.slice(0, 5)" :key="c.id" class="py-2 border-bottom">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
                     <div class="small fw-semibold" style="color:var(--gpe-primary)">{{ c.program?.title || settingsStore.t('dashboard.generalInquiry') }}</div>
@@ -83,6 +119,9 @@
                     <button v-if="c.status === 'pending'" class="btn btn-sm btn-outline-danger" style="font-size:0.72rem;" @click="cancel(c.id)">{{ settingsStore.t('common.cancel') }}</button>
                   </div>
                 </div>
+              </div>
+              <div v-if="filteredConsultations.length === 0" class="text-center py-3 text-muted small">
+                No consultations match your filters.
               </div>
             </div>
           </div>
@@ -124,9 +163,45 @@ const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 const consultations = ref([])
 const loading = ref(true)
+const bookmarkSearch = ref('')
+const consultationSearch = ref('')
+const consultationStatus = ref('all')
 
 const firstName = computed(() => userStore.profile?.firstName || user.value?.firstName || 'there')
 const completedCount = computed(() => consultations.value.filter(c => c.status === 'completed').length)
+const consultationStatusTabs = computed(() => [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: settingsStore.t('common.status.pending') },
+  { value: 'confirmed', label: settingsStore.t('common.status.confirmed') },
+  { value: 'completed', label: settingsStore.t('common.status.completed') },
+  { value: 'cancelled', label: settingsStore.t('common.status.cancelled') },
+])
+
+const filteredBookmarks = computed(() => {
+  const query = bookmarkSearch.value.trim().toLowerCase()
+  if (!query) return userStore.bookmarks
+  return userStore.bookmarks.filter((bookmark) =>
+    [bookmark.program?.title, bookmark.program?.institution, bookmark.program?.country]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  )
+})
+
+const filteredConsultations = computed(() => {
+  let list = consultations.value
+  if (consultationStatus.value !== 'all') {
+    list = list.filter((item) => String(item.status).toLowerCase() === consultationStatus.value)
+  }
+
+  const query = consultationSearch.value.trim().toLowerCase()
+  if (!query) return list
+
+  return list.filter((consultation) =>
+    [consultation.program?.title, consultation.program?.institution, consultation.message, consultation.preferredCountry]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  )
+})
 
 const stats = computed(() => [
   { icon: '🔖', value: userStore.bookmarks.length, label: settingsStore.t('dashboard.savedPrograms') },
@@ -168,6 +243,11 @@ function statusClass(status) {
 
 function statusLabel(status) {
   return settingsStore.t(`common.status.${String(status).toLowerCase()}`)
+}
+
+function consultationCount(status) {
+  if (status === 'all') return consultations.value.length
+  return consultations.value.filter((item) => String(item.status).toLowerCase() === status).length
 }
 </script>
 
@@ -227,6 +307,70 @@ function statusLabel(status) {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+.dashboard-toolbar {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dashboard-toolbar-stack {
+  gap: 0.9rem;
+}
+
+.dashboard-search {
+  position: relative;
+}
+
+.dashboard-search i {
+  color: #94a3b8;
+  left: 0.8rem;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dashboard-search input {
+  width: 100%;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem 0.55rem 2.2rem;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-tab {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.status-tab span {
+  background: #f1f5f9;
+  border-radius: 999px;
+  color: #64748b;
+  min-width: 1.45rem;
+  padding: 0.1rem 0.35rem;
+  text-align: center;
+}
+
+.status-tab.active {
+  background: #f4a41b;
+  border-color: #f4a41b;
+  color: #0f172a;
 }
 
 .quick-action-card {
