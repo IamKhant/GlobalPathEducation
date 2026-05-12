@@ -80,6 +80,171 @@
           </div>
         </section>
 
+        <section v-if="activeTab === 'homepage'" class="homepage-admin">
+          <div class="homepage-admin-layout">
+            <div class="homepage-preview-stack">
+              <article
+                v-for="section in homepageSections"
+                :key="section.key"
+                class="panel homepage-section-card"
+                :class="{ editing: editingHomepageSection === section.key }"
+              >
+                <div class="homepage-section-head">
+                  <div>
+                    <p class="section-meta">{{ section.eyebrow }}</p>
+                    <h2>{{ section.title }}</h2>
+                    <p class="section-note">{{ section.note }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="section-edit-button"
+                    @click="openHomepageEditor(section)"
+                  >
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                <div v-if="section.key === 'hero'" class="homepage-preview hero-preview">
+                  <div class="hero-preview-copy">
+                    <span class="hero-preview-badge">{{ settingsStore.t('home.hero.badge') }}</span>
+                    <h3>{{ settingsStore.t('home.hero.title') }}</h3>
+                    <p>{{ settingsStore.t('home.hero.subtitle') }}</p>
+                    <div class="hero-preview-search">
+                      <span>{{ settingsStore.t('home.hero.searchPlaceholder') }}</span>
+                      <button type="button">{{ settingsStore.t('home.hero.searchButton') }}</button>
+                    </div>
+                    <div class="hero-preview-actions">
+                      <span class="preview-pill primary">{{ settingsStore.t('home.hero.explorePrograms') }}</span>
+                      <span class="preview-pill">{{ settingsStore.t('home.hero.bookConsultation') }}</span>
+                    </div>
+                  </div>
+                  <div class="hero-preview-visual">
+                    <div class="hero-preview-image">Hero image</div>
+                    <small>Image stays managed in assets for now.</small>
+                  </div>
+                </div>
+
+                <div v-else-if="section.key === 'destinations'" class="homepage-preview destination-preview">
+                  <div class="preview-heading-row">
+                    <div>
+                      <span class="section-kicker-preview">{{ settingsStore.t('home.destinations.kicker') }}</span>
+                      <h3>{{ settingsStore.t('home.destinations.title') }}</h3>
+                      <p>{{ settingsStore.t('home.destinations.subtitle') }}</p>
+                    </div>
+                    <span class="view-link-preview">{{ settingsStore.t('home.destinations.viewPrograms') }}</span>
+                  </div>
+                  <div class="destination-preview-grid">
+                    <div v-for="country in previewCountries" :key="country" class="destination-preview-card">
+                      <div class="destination-preview-image"></div>
+                      <strong>{{ country }}</strong>
+                      <small>{{ settingsStore.t('home.destinations.label') }}</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else-if="section.key === 'featured'" class="homepage-preview featured-preview">
+                  <div class="preview-heading-row">
+                    <div>
+                      <span class="section-kicker-preview">{{ settingsStore.t('home.featured.kicker') }}</span>
+                      <h3>{{ settingsStore.t('home.featured.title') }}</h3>
+                      <p>{{ settingsStore.t('home.featured.subtitle') }}</p>
+                    </div>
+                  </div>
+                  <div class="featured-preview-grid">
+                    <div v-for="program in previewPrograms" :key="program.title" class="featured-preview-card">
+                      <span class="type-chip">{{ program.type }}</span>
+                      <h4>{{ program.title }}</h4>
+                      <p>{{ program.institution }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else-if="section.key === 'process'" class="homepage-preview process-preview">
+                  <div class="preview-heading-row center">
+                    <div>
+                      <span class="section-kicker-preview">{{ settingsStore.t('home.process.kicker') }}</span>
+                      <h3>{{ settingsStore.t('home.process.title') }}</h3>
+                      <p>{{ settingsStore.t('home.process.subtitle') }}</p>
+                    </div>
+                  </div>
+                  <div class="process-preview-grid">
+                    <div v-for="step in previewSteps" :key="step.title" class="process-preview-card">
+                      <div class="process-preview-icon">
+                        <i :class="step.icon"></i>
+                      </div>
+                      <strong>{{ step.title }}</strong>
+                      <p>{{ step.text }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else-if="section.key === 'why'" class="homepage-preview why-preview">
+                  <div class="why-preview-copy">
+                    <span class="section-kicker-preview">{{ settingsStore.t('home.why.kicker') }}</span>
+                    <h3>{{ settingsStore.t('home.why.title') }}</h3>
+                    <p>{{ settingsStore.t('home.why.text') }}</p>
+                    <span class="preview-pill primary">{{ settingsStore.t('home.why.cta') }}</span>
+                  </div>
+                  <div class="why-preview-benefits">
+                    <div v-for="benefit in previewBenefits" :key="benefit.title" class="why-benefit-preview">
+                      <strong>{{ benefit.title }}</strong>
+                      <p>{{ benefit.text }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="homepage-preview cta-preview">
+                  <span class="section-kicker-preview light">{{ settingsStore.t('home.cta.kicker') }}</span>
+                  <h3>{{ settingsStore.t('home.cta.title') }}</h3>
+                  <p>{{ settingsStore.t('home.cta.text') }}</p>
+                  <span class="preview-pill light">{{ settingsStore.t('home.cta.button') }}</span>
+                </div>
+              </article>
+            </div>
+
+            <aside class="panel homepage-editor-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>{{ currentHomepageSection?.title || 'Homepage editor' }}</h2>
+                  <p v-if="currentHomepageSection" class="homepage-editor-note">
+                    Update the copy for this section. Changes apply to the public homepage immediately after save.
+                  </p>
+                  <p v-else class="homepage-editor-note">
+                    Pick a section from the left and use its edit icon.
+                  </p>
+                </div>
+              </div>
+
+              <form v-if="currentHomepageSection" class="program-form" @submit.prevent="saveHomepageSection">
+                <label v-for="field in currentHomepageSection.fields" :key="field.key">
+                  <span>{{ field.label }}</span>
+                  <textarea
+                    v-if="field.type === 'textarea'"
+                    v-model="homepageDraft[field.key]"
+                    class="form-control"
+                    :rows="field.rows || 3"
+                  ></textarea>
+                  <input
+                    v-else
+                    v-model="homepageDraft[field.key]"
+                    class="form-control"
+                    type="text"
+                  />
+                </label>
+                <div class="homepage-editor-actions">
+                  <button type="button" class="btn btn-outline-secondary" @click="closeHomepageEditor">
+                    Cancel
+                  </button>
+                  <button type="submit" class="btn btn-gpe-primary" :disabled="homepageSaving">
+                    {{ homepageSaving ? 'Saving...' : 'Save section' }}
+                  </button>
+                </div>
+              </form>
+            </aside>
+          </div>
+        </section>
+
         <section v-if="activeTab === 'consultations'" class="panel">
           <div class="panel-heading" style="border-bottom: 1px solid #e5edf7; padding-bottom: 1rem; margin-bottom: 1rem;">
             <h2>All consultations</h2>
@@ -152,9 +317,61 @@
               <p>{{ student.email }}</p>
               <small>{{ student.consultations?.length || 0 }} consultations / {{ student.bookmarks?.length || 0 }} saved</small>
             </div>
-            <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteStudent(student.id)">
-              Delete
-            </button>
+            <div class="row-actions row-actions-inline">
+              <button class="btn btn-sm btn-outline-primary" type="button" @click="changeUserRole(student, 'consultant')">
+                Make consultant
+              </button>
+              <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(student, 'admin')">
+                Make admin
+              </button>
+              <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteStudent(student.id)">
+                Delete
+              </button>
+            </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'admins'">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h2 class="fs-5 fw-bold mb-1">Admin accounts</h2>
+              <p class="text-muted mb-0 small">Keep role changes explicit. Current admin access cannot be removed from the active session.</p>
+            </div>
+            <div class="position-relative" style="width: 280px;">
+              <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 0.8rem;"></i>
+              <input v-model="adminAdminSearch" type="text" class="form-control form-control-sm" placeholder="Search admins by name or email..." style="padding-left: 2rem; border-radius: 8px;" />
+            </div>
+          </div>
+          <div class="grid-list scrollable-list">
+            <article v-for="admin in filteredAdminUsers" :key="admin.id" class="panel user-card">
+              <div>
+                <div class="staff-user-head">
+                  <span class="role-badge role-badge-admin">admin</span>
+                  <span v-if="admin.id === currentAdminId" class="self-badge">Current session</span>
+                </div>
+                <h2>{{ userName(admin) }}</h2>
+                <p>{{ admin.email }}</p>
+                <small>{{ admin.consultations?.length || 0 }} student consultations / {{ admin.assignedConsultations?.length || 0 }} assigned requests</small>
+              </div>
+              <div class="row-actions row-actions-inline">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  type="button"
+                  :disabled="admin.id === currentAdminId"
+                  @click="changeUserRole(admin, 'consultant')"
+                >
+                  Make consultant
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  :disabled="admin.id === currentAdminId"
+                  @click="changeUserRole(admin, 'student')"
+                >
+                  Make student
+                </button>
+              </div>
             </article>
           </div>
         </section>
@@ -270,9 +487,14 @@
 
               <div class="consultant-admin-footer">
                 <span>{{ consultant.assignedConsultations?.length || 0 }} assigned consultations</span>
-                <button class="btn btn-sm btn-outline-danger" type="button" @click="confirmDemote(consultant)">
-                  <i class="bi bi-arrow-down-circle me-1"></i>Make student
-                </button>
+                <div class="row-actions row-actions-inline">
+                  <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(consultant, 'admin')">
+                    <i class="bi bi-shield-lock me-1"></i>Make admin
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" @click="confirmDemote(consultant)">
+                    <i class="bi bi-arrow-down-circle me-1"></i>Make student
+                  </button>
+                </div>
               </div>
             </article>
           </div>
@@ -364,15 +586,21 @@ const dashboard = ref({})
 const consultations = ref([])
 const students = ref([])
 const consultants = ref([])
+const admins = ref([])
 const programs = ref([])
 const promoteUserId = ref('')
 const promoteSearch = ref('')
 const adminConsultantSearch = ref('')
 const adminConsultationSearch = ref('')
 const adminStudentSearch = ref('')
+const adminAdminSearch = ref('')
 const adminProgramSearch = ref('')
 const editingProgramId = ref(null)
 const programSaving = ref(false)
+const homepageSaving = ref(false)
+const editingHomepageSection = ref('')
+const homepageDraft = ref({})
+const currentAdminId = ref(null)
 const statuses = ['pending', 'confirmed', 'completed', 'cancelled']
 
 const emptyProgramForm = {
@@ -397,11 +625,160 @@ const programForm = ref({ ...emptyProgramForm })
 
 const tabs = [
   { key: 'overview', label: 'Overview', icon: 'bi bi-grid-1x2' },
+  { key: 'homepage', label: 'Homepage', icon: 'bi bi-house-door' },
   { key: 'consultations', label: 'Consultations', icon: 'bi bi-calendar-check' },
   { key: 'students', label: 'Students', icon: 'bi bi-people' },
+  { key: 'admins', label: 'Admins', icon: 'bi bi-shield-lock' },
   { key: 'consultants', label: 'Consultants', icon: 'bi bi-person-badge' },
   { key: 'programs', label: 'Programs', icon: 'bi bi-mortarboard' },
 ]
+
+const homepageSections = [
+  {
+    key: 'hero',
+    eyebrow: 'Hero',
+    title: 'Hero section',
+    note: 'Main first-screen message, search bar copy, and action buttons.',
+    fields: [
+      { key: 'home.hero.badge', label: 'Badge' },
+      { key: 'home.hero.title', label: 'Title', type: 'textarea', rows: 2 },
+      { key: 'home.hero.subtitle', label: 'Subtitle', type: 'textarea', rows: 4 },
+      { key: 'home.hero.searchPlaceholder', label: 'Search placeholder' },
+      { key: 'home.hero.searchButton', label: 'Search button' },
+      { key: 'home.hero.explorePrograms', label: 'Primary button' },
+      { key: 'home.hero.bookConsultation', label: 'Secondary button' },
+    ],
+  },
+  {
+    key: 'destinations',
+    eyebrow: 'Destinations',
+    title: 'Destination slideshow',
+    note: 'Intro copy for the destination carousel and country links.',
+    fields: [
+      { key: 'home.destinations.kicker', label: 'Kicker' },
+      { key: 'home.destinations.title', label: 'Title', type: 'textarea', rows: 2 },
+      { key: 'home.destinations.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
+      { key: 'home.destinations.label', label: 'Destination label' },
+      { key: 'home.destinations.viewPrograms', label: 'View programs link' },
+    ],
+  },
+  {
+    key: 'featured',
+    eyebrow: 'Featured',
+    title: 'Featured programs',
+    note: 'Headline and support copy for the featured program cards.',
+    fields: [
+      { key: 'home.featured.kicker', label: 'Kicker' },
+      { key: 'home.featured.title', label: 'Title' },
+      { key: 'home.featured.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
+      { key: 'home.featured.viewAll', label: 'View all link' },
+    ],
+  },
+  {
+    key: 'process',
+    eyebrow: 'Process',
+    title: 'How it works',
+    note: 'Section heading and the three step descriptions.',
+    fields: [
+      { key: 'home.process.kicker', label: 'Kicker' },
+      { key: 'home.process.title', label: 'Title' },
+      { key: 'home.process.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
+      { key: 'home.step.explore.title', label: 'Step 1 title' },
+      { key: 'home.step.explore.text', label: 'Step 1 text', type: 'textarea', rows: 2 },
+      { key: 'home.step.compare.title', label: 'Step 2 title' },
+      { key: 'home.step.compare.text', label: 'Step 2 text', type: 'textarea', rows: 2 },
+      { key: 'home.step.consult.title', label: 'Step 3 title' },
+      { key: 'home.step.consult.text', label: 'Step 3 text', type: 'textarea', rows: 2 },
+    ],
+  },
+  {
+    key: 'why',
+    eyebrow: 'Why choose us',
+    title: 'Trust-building section',
+    note: 'Main explanation plus the benefit cards.',
+    fields: [
+      { key: 'home.why.kicker', label: 'Kicker' },
+      { key: 'home.why.title', label: 'Title', type: 'textarea', rows: 2 },
+      { key: 'home.why.text', label: 'Body text', type: 'textarea', rows: 4 },
+      { key: 'home.why.cta', label: 'Button text' },
+      { key: 'home.benefit.destinations.title', label: 'Benefit 1 title' },
+      { key: 'home.benefit.destinations.text', label: 'Benefit 1 text', type: 'textarea', rows: 2 },
+      { key: 'home.benefit.save.title', label: 'Benefit 2 title' },
+      { key: 'home.benefit.save.text', label: 'Benefit 2 text', type: 'textarea', rows: 2 },
+      { key: 'home.benefit.compare.title', label: 'Benefit 3 title' },
+      { key: 'home.benefit.compare.text', label: 'Benefit 3 text', type: 'textarea', rows: 2 },
+      { key: 'home.benefit.consult.title', label: 'Benefit 4 title' },
+      { key: 'home.benefit.consult.text', label: 'Benefit 4 text', type: 'textarea', rows: 2 },
+    ],
+  },
+  {
+    key: 'cta',
+    eyebrow: 'Final call-to-action',
+    title: 'Closing banner',
+    note: 'Last conversion section before the footer.',
+    fields: [
+      { key: 'home.cta.kicker', label: 'Kicker' },
+      { key: 'home.cta.title', label: 'Title', type: 'textarea', rows: 2 },
+      { key: 'home.cta.text', label: 'Body text', type: 'textarea', rows: 3 },
+      { key: 'home.cta.button', label: 'Button text' },
+    ],
+  },
+]
+
+const currentHomepageSection = computed(() => {
+  return homepageSections.find((section) => section.key === editingHomepageSection.value) || null
+})
+
+const previewCountries = ['Australia', 'Germany', 'Japan']
+
+const previewPrograms = computed(() => {
+  return (programs.value.length ? programs.value : [
+    { title: 'Software Engineering', institution: 'Global Institute', type: 'Bootcamp' },
+    { title: 'International Business', institution: 'Northbridge University', type: 'Master' },
+    { title: 'Data Science', institution: 'Pacific Tech', type: 'Master' },
+  ]).slice(0, 3)
+})
+
+const previewSteps = computed(() => {
+  return [
+    {
+      icon: 'bi bi-search',
+      title: settingsStore.t('home.step.explore.title'),
+      text: settingsStore.t('home.step.explore.text'),
+    },
+    {
+      icon: 'bi bi-bar-chart-steps',
+      title: settingsStore.t('home.step.compare.title'),
+      text: settingsStore.t('home.step.compare.text'),
+    },
+    {
+      icon: 'bi bi-calendar-check',
+      title: settingsStore.t('home.step.consult.title'),
+      text: settingsStore.t('home.step.consult.text'),
+    },
+  ]
+})
+
+const previewBenefits = computed(() => {
+  return [
+    {
+      title: settingsStore.t('home.benefit.destinations.title'),
+      text: settingsStore.t('home.benefit.destinations.text'),
+    },
+    {
+      title: settingsStore.t('home.benefit.save.title'),
+      text: settingsStore.t('home.benefit.save.text'),
+    },
+    {
+      title: settingsStore.t('home.benefit.compare.title'),
+      text: settingsStore.t('home.benefit.compare.text'),
+    },
+    {
+      title: settingsStore.t('home.benefit.consult.title'),
+      text: settingsStore.t('home.benefit.consult.text'),
+    },
+  ]
+})
 
 onMounted(async () => {
   await fetchAll()
@@ -410,12 +787,19 @@ onMounted(async () => {
 
 async function fetchAll() {
   await Promise.all([
+    fetchAdminMe(),
     fetchDashboard(),
     fetchConsultations(),
     fetchStudents(),
+    fetchAdmins(),
     fetchConsultants(),
     fetchPrograms(),
   ])
+}
+
+async function fetchAdminMe() {
+  const { data } = await api.get('/api/admin/me')
+  currentAdminId.value = data.user?.id || null
 }
 
 async function fetchDashboard() {
@@ -438,9 +822,45 @@ async function fetchConsultants() {
   consultants.value = data
 }
 
+async function fetchAdmins() {
+  const { data } = await api.get('/api/admin/admins')
+  admins.value = data
+}
+
 async function fetchPrograms() {
   const { data } = await api.get('/api/admin/programs')
   programs.value = data
+}
+
+function openHomepageEditor(section) {
+  editingHomepageSection.value = section.key
+  homepageDraft.value = Object.fromEntries(
+    section.fields.map((field) => [field.key, settingsStore.t(field.key)]),
+  )
+}
+
+function closeHomepageEditor() {
+  editingHomepageSection.value = ''
+  homepageDraft.value = {}
+}
+
+async function saveHomepageSection() {
+  if (!currentHomepageSection.value) return
+
+  homepageSaving.value = true
+  try {
+    await api.patch('/api/admin/ui-text', {
+      locale: 'EN',
+      entries: currentHomepageSection.value.fields.map((field) => ({
+        key: field.key,
+        text: String(homepageDraft.value[field.key] || '').trim(),
+      })),
+    })
+    await settingsStore.fetchUiTranslations()
+    closeHomepageEditor()
+  } finally {
+    homepageSaving.value = false
+  }
 }
 
 async function updateConsultation(id, payload) {
@@ -452,7 +872,24 @@ async function promoteConsultant() {
   await api.patch(`/api/admin/users/${promoteUserId.value}/role`, { role: 'consultant' })
   promoteUserId.value = ''
   promoteSearch.value = ''
-  await Promise.all([fetchStudents(), fetchConsultants(), fetchDashboard()])
+  await Promise.all([fetchStudents(), fetchAdmins(), fetchConsultants(), fetchDashboard()])
+}
+
+async function changeUserRole(user, role) {
+  const currentRole = String(user.role || '').toLowerCase()
+  if (currentRole === role) return
+
+  const name = userName(user)
+  const roleLabel = role === 'admin' ? 'admin' : role === 'consultant' ? 'consultant' : 'student'
+  const actionText =
+    role === 'admin'
+      ? `Promote ${name} to admin?\n\nAdmins can manage students, consultants, programs, and homepage content.`
+      : `Change ${name} to ${roleLabel} role?`
+
+  if (!confirm(actionText)) return
+
+  await api.patch(`/api/admin/users/${user.id}/role`, { role })
+  await Promise.all([fetchStudents(), fetchAdmins(), fetchConsultants(), fetchDashboard()])
 }
 
 function confirmDemote(consultant) {
@@ -463,7 +900,7 @@ function confirmDemote(consultant) {
 
 async function demoteConsultant(id) {
   await api.patch(`/api/admin/users/${id}/role`, { role: 'student' })
-  await Promise.all([fetchStudents(), fetchConsultants(), fetchDashboard()])
+  await Promise.all([fetchStudents(), fetchAdmins(), fetchConsultants(), fetchDashboard()])
 }
 
 const filteredAdminConsultants = computed(() => {
@@ -496,6 +933,16 @@ const filteredAdminStudents = computed(() => {
   return students.value.filter((s) => {
     const name = userName(s).toLowerCase()
     const email = (s.email || '').toLowerCase()
+    return name.includes(query) || email.includes(query)
+  })
+})
+
+const filteredAdminUsers = computed(() => {
+  const query = adminAdminSearch.value.trim().toLowerCase()
+  if (!query) return admins.value
+  return admins.value.filter((admin) => {
+    const name = userName(admin).toLowerCase()
+    const email = (admin.email || '').toLowerCase()
     return name.includes(query) || email.includes(query)
   })
 })
@@ -749,7 +1196,8 @@ function statusLabel(status) {
 
 .stats-grid,
 .two-col,
-.program-workspace {
+.program-workspace,
+.homepage-admin-layout {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -762,6 +1210,294 @@ function statusLabel(status) {
 
 .program-workspace {
   grid-template-columns: 380px minmax(0, 1fr);
+}
+
+.homepage-admin-layout {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.4fr) 360px;
+}
+
+.homepage-preview-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.homepage-section-card.editing {
+  border-color: rgba(244, 164, 27, 0.55);
+  box-shadow: 0 16px 40px rgba(244, 164, 27, 0.12);
+}
+
+.homepage-section-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-meta {
+  color: #f4a41b;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.section-note,
+.homepage-editor-note,
+.hero-preview-visual small {
+  color: #64748b;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  margin: 0.3rem 0 0;
+}
+
+.section-edit-button {
+  align-items: center;
+  background: #fff8eb;
+  border: 1px solid rgba(244, 164, 27, 0.35);
+  border-radius: 999px;
+  color: #8a5b07;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 850;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.homepage-preview {
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.hero-preview {
+  background: linear-gradient(135deg, #f7fbff 0%, #eef7ff 48%, #ffffff 100%);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.95fr);
+  padding: 1.25rem;
+}
+
+.hero-preview-copy h3,
+.preview-heading-row h3,
+.why-preview-copy h3,
+.cta-preview h3 {
+  color: #13233b;
+  font-size: 1.7rem;
+  font-weight: 850;
+  margin: 0 0 0.65rem;
+}
+
+.hero-preview-copy p,
+.preview-heading-row p,
+.process-preview-card p,
+.why-preview-copy p,
+.why-benefit-preview p,
+.cta-preview p {
+  color: #475569;
+  margin: 0;
+}
+
+.hero-preview-badge,
+.section-kicker-preview {
+  color: #2563eb;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 850;
+  margin-bottom: 0.85rem;
+}
+
+.hero-preview-search {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #dbe5f0;
+  border-radius: 999px;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.45rem 0.45rem 0.45rem 0.9rem;
+}
+
+.hero-preview-search span {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.hero-preview-search button,
+.preview-pill {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 850;
+  padding: 0.55rem 0.9rem;
+}
+
+.hero-preview-search button,
+.preview-pill.primary {
+  background: #0f172a;
+  border: 0;
+  color: #fff;
+}
+
+.hero-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.preview-pill {
+  background: #fff;
+  border: 1px solid #dbe5f0;
+  color: #0f172a;
+}
+
+.preview-pill.light {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+.hero-preview-visual {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.hero-preview-image,
+.destination-preview-image {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 18px;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e3a8a;
+  font-weight: 850;
+}
+
+.destination-preview,
+.featured-preview,
+.process-preview,
+.why-preview {
+  padding: 1.1rem;
+}
+
+.preview-heading-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.preview-heading-row.center {
+  justify-content: center;
+  text-align: center;
+}
+
+.view-link-preview {
+  color: #0a82d3;
+  font-size: 0.85rem;
+  font-weight: 850;
+}
+
+.destination-preview-grid,
+.featured-preview-grid,
+.process-preview-grid,
+.why-preview-benefits {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.destination-preview-grid,
+.featured-preview-grid,
+.process-preview-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.destination-preview-card,
+.featured-preview-card,
+.process-preview-card,
+.why-benefit-preview {
+  background: #fff;
+  border: 1px solid #e5edf7;
+  border-radius: 12px;
+  padding: 0.85rem;
+}
+
+.destination-preview-card strong,
+.featured-preview-card h4,
+.process-preview-card strong,
+.why-benefit-preview strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 850;
+  margin-top: 0.65rem;
+}
+
+.destination-preview-card small,
+.featured-preview-card p {
+  color: #64748b;
+}
+
+.type-chip {
+  background: #eff6ff;
+  border-radius: 999px;
+  color: #0f4d85;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 850;
+  padding: 0.3rem 0.55rem;
+}
+
+.process-preview-icon {
+  align-items: center;
+  background: #0f172a;
+  border-radius: 999px;
+  color: #fff;
+  display: flex;
+  height: 42px;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  width: 42px;
+}
+
+.why-preview {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.cta-preview {
+  background: linear-gradient(135deg, #0f172a, #123556);
+  color: #fff;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.4rem;
+}
+
+.section-kicker-preview.light,
+.cta-preview p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.homepage-editor-panel {
+  align-self: start;
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 6rem;
+}
+
+.homepage-editor-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 .consultant-admin-layout {
@@ -942,6 +1678,34 @@ function statusLabel(status) {
   display: flex;
   gap: 0.85rem;
   justify-content: space-between;
+}
+
+.staff-user-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-badge,
+.self-badge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 850;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.role-badge-admin {
+  background: #0f172a;
+  color: #fff;
+}
+
+.self-badge {
+  background: #eff6ff;
+  color: #0f4d85;
 }
 
 .consultant-admin-top {
@@ -1168,6 +1932,13 @@ label span {
   gap: 0.5rem;
 }
 
+.row-actions-inline {
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 @media (max-width: 991.98px) {
   .admin-header,
   .panel-heading,
@@ -1188,13 +1959,26 @@ label span {
 
   .stats-grid,
   .two-col,
+  .homepage-admin-layout,
   .program-workspace,
   .consultant-admin-layout,
   .consultant-editor-grid {
     grid-template-columns: 1fr;
   }
 
+  .hero-preview,
+  .why-preview,
+  .destination-preview-grid,
+  .featured-preview-grid,
+  .process-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
   .promote-panel {
+    position: static;
+  }
+
+  .homepage-editor-panel {
     position: static;
   }
 

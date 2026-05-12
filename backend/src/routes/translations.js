@@ -32,13 +32,6 @@ router.post('/ui', async (req, res) => {
       });
     }
 
-    if (locale === 'EN') {
-      return res.json({
-        locale,
-        translations: Object.fromEntries(entries.map((entry) => [entry.key, entry.text])),
-      });
-    }
-
     const keys = entries.map((entry) => entry.key);
     const cachedTranslations = await req.prisma.uiTranslation.findMany({
       where: {
@@ -52,6 +45,16 @@ router.post('/ui', async (req, res) => {
     const translations = Object.fromEntries(
       cachedTranslations.map((translation) => [translation.key, translation.text]),
     );
+
+    if (locale === 'EN') {
+      return res.json({
+        locale,
+        translations: {
+          ...Object.fromEntries(entries.map((entry) => [entry.key, entry.text])),
+          ...translations,
+        },
+      });
+    }
 
     const missingEntries = entries.filter((entry) => !translations[entry.key]);
 

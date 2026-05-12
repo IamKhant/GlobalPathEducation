@@ -13,6 +13,17 @@ function normalizeCountries(countries) {
   return [...new Set(countries.map((country) => String(country || '').trim()).filter(Boolean))];
 }
 
+function normalizeUiEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+
+  return entries
+    .map((entry) => ({
+      key: typeof entry.key === 'string' ? entry.key.trim() : '',
+      text: typeof entry.text === 'string' ? entry.text.trim() : '',
+    }))
+    .filter((entry) => entry.key && entry.text);
+}
+
 function parseProgramPayload(body) {
   return {
     title: body.title,
@@ -196,6 +207,24 @@ router.get('/consultants', requireAdmin, async (req, res) => {
   }
 });
 
+router.get('/admins', requireAdmin, async (req, res) => {
+  try {
+    const admins = await req.prisma.user.findMany({
+      where: { role: 'admin' },
+      include: {
+        assignedConsultations: { orderBy: { createdAt: 'desc' } },
+        consultations: { orderBy: { createdAt: 'desc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(admins);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch admins' });
+  }
+});
+
 router.patch('/consultants/:id/profile', requireAdmin, async (req, res) => {
   try {
     const id = Number.parseInt(req.params.id, 10);
@@ -234,6 +263,10 @@ router.patch('/users/:id/role', requireAdmin, async (req, res) => {
 
     if (!['student', 'consultant', 'admin'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    if (req.currentUser.id === id && role !== 'admin') {
+      return res.status(400).json({ message: 'You cannot remove your own admin access' });
     }
 
     const user = await req.prisma.user.update({
@@ -280,6 +313,55 @@ router.patch('/consultants/:id/countries', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to update consultant countries' });
+  }
+});
+
+router.patch('/ui-text', requireAdmin, async (req, res) => {
+  try {
+    const locale = String(req.body.locale || 'EN').trim().toUpperCase();
+    const entries = normalizeUiEntries(req.body.entries);
+
+    if (!entries.length) {
+      return res.status(400).json({ message: 'At least one text entry is required' });
+    }
+
+    await Promise.all(
+      entries.map((entry) =>
+        req.prisma.uiTranslation.upsert({
+          where: {
+            locale_key: {
+              locale,
+              key: entry.key,
+            },
+          },
+          update: {
+            text: entry.text,
+          },
+          create: {
+            locale,
+            key: entry.key,
+            text: entry.text,
+          },
+        }),
+      ),
+    );
+
+    const saved = await req.prisma.uiTranslation.findMany({
+      where: {
+        locale,
+        key: {
+          in: entries.map((entry) => entry.key),
+        },
+      },
+    });
+
+    res.json({
+      locale,
+      translations: Object.fromEntries(saved.map((entry) => [entry.key, entry.text])),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to update UI text' });
   }
 });
 

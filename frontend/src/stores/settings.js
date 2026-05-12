@@ -67,17 +67,12 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   function t(key, params = {}) {
-    const text =
-      selectedLanguage.value === 'EN'
-        ? uiText[key]
-        : uiTranslations.value[selectedLanguage.value]?.[key] || uiText[key]
+    const text = uiTranslations.value[selectedLanguage.value]?.[key] || uiText[key]
 
     return formatText(text || key, params)
   }
 
   async function fetchUiTranslations() {
-    if (selectedLanguage.value === 'EN') return
-
     try {
       loadingUiTranslations.value = true
       uiTranslationError.value = ''
