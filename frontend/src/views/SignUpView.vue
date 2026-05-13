@@ -4,12 +4,6 @@
     <div class="auth-blob auth-blob-2"></div>
     <div class="auth-blob auth-blob-3"></div>
     <div class="auth-card animate-in">
-      <div class="text-center mb-4">
-        <div class="auth-icon"><i class="bi bi-rocket-takeoff"></i></div>
-        <h2 class="auth-title">{{ settingsStore.t('auth.signUp.title') }}</h2>
-        <p class="auth-subtitle">{{ settingsStore.t('auth.signUp.subtitle') }}</p>
-      </div>
-
       <SignUp
         routing="path"
         path="/sign-up"
@@ -22,9 +16,6 @@
 
 <script setup>
 import { SignUp } from '@clerk/vue'
-import { useSettingsStore } from '@/stores/settings'
-
-const settingsStore = useSettingsStore()
 </script>
 
 <style scoped>
@@ -83,30 +74,6 @@ const settingsStore = useSettingsStore()
   align-items: center;
   position: relative;
   z-index: 1;
-}
-
-.auth-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f4a41b, #e0941a);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  box-shadow: 0 8px 24px rgba(244, 164, 27, 0.25);
-}
-
-.auth-title {
-  color: #0f172a;
-  font-weight: 850;
-  letter-spacing: -0.03em;
-}
-
-.auth-subtitle {
-  color: #64748b;
 }
 
 .auth-card :deep(.cl-rootBox),

@@ -4,27 +4,42 @@
     <div class="auth-blob auth-blob-2"></div>
     <div class="auth-blob auth-blob-3"></div>
     <div class="auth-card animate-in">
-      <div class="text-center mb-4">
-        <div class="auth-icon"><i class="bi bi-door-open"></i></div>
-        <h2 class="auth-title">{{ settingsStore.t('auth.signIn.title') }}</h2>
-        <p class="auth-subtitle">{{ settingsStore.t('auth.signIn.subtitle') }}</p>
-      </div>
-
       <SignIn
         routing="path"
         path="/sign-in"
         sign-up-url="/sign-up"
         fallback-redirect-url="/dashboard"
       />
+
+      <div class="demo-credentials">
+        <div class="demo-credentials-head">
+          <i class="bi bi-key"></i>
+          <span>Demo login credentials</span>
+        </div>
+        <div class="demo-credentials-list">
+          <div class="demo-credential-row">
+            <strong>Admin</strong>
+            <code>admin@globalpath.com</code>
+            <code>iamadmin</code>
+          </div>
+          <div class="demo-credential-row">
+            <strong>Consultant</strong>
+            <code>khantzinkoaustralia@gmail.com</code>
+            <code>iamconsultant</code>
+          </div>
+          <div class="demo-credential-row">
+            <strong>Student</strong>
+            <code>studentthree@gmail.com</code>
+            <code>iamstudent</code>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { SignIn } from '@clerk/vue'
-import { useSettingsStore } from '@/stores/settings'
-
-const settingsStore = useSettingsStore()
 </script>
 
 <style scoped>
@@ -86,35 +101,65 @@ const settingsStore = useSettingsStore()
   z-index: 1;
 }
 
-.auth-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
-}
-
-.auth-title {
-  color: #0f172a;
-  font-weight: 850;
-  letter-spacing: -0.03em;
-}
-
-.auth-subtitle {
-  color: #64748b;
-}
-
 .auth-card :deep(.cl-rootBox),
 .auth-card :deep(.cl-cardBox),
 .auth-card :deep(.cl-card) {
   width: 100%;
   margin-left: auto;
   margin-right: auto;
+}
+
+.demo-credentials {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #e5edf7;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  text-align: left;
+}
+
+.demo-credentials-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.demo-credentials-head i {
+  color: #f4a41b;
+}
+
+.demo-credentials-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.demo-credential-row {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+
+.demo-credential-row strong {
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.demo-credential-row code {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.22rem 0.45rem;
+  border-radius: 8px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.78rem;
 }
 </style>
