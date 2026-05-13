@@ -179,7 +179,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { useAuth, useUser } from '@clerk/vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
-import logo from '@/assets/logo/globalPathLogoTransparent.png'
+import logo from '@/assets/logo/GlobalPathLogoTransparent.png'
 
 const route = useRoute()
 const { isSignedIn } = useAuth()
