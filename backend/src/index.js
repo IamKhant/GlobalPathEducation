@@ -17,15 +17,17 @@ const translationRoutes = require('./routes/translations');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const DATABASE_CONNECTION_URL = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DIRECT_URL,
+  connectionString: DATABASE_CONNECTION_URL,
 });
 
 const prisma = new PrismaClient({ adapter });
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: FRONTEND_URL,
   credentials: true,
 }));
 
