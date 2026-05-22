@@ -97,6 +97,25 @@
                     :placeholder="settingsStore.t('profile.destinationPlaceholder')"
                   />
                 </div>
+                <div v-if="isStudentProfile" class="col-md-4">
+                  <label class="form-label">{{ settingsStore.t('profile.maxBudget') }}</label>
+                  <input
+                    v-model.number="profileForm.maxBudget"
+                    type="number"
+                    min="0"
+                    step="100"
+                    class="form-control"
+                    :placeholder="settingsStore.t('profile.maxBudgetPlaceholder')"
+                  />
+                </div>
+                <div v-if="isStudentProfile" class="col-md-4">
+                  <label class="form-label">{{ settingsStore.t('profile.budgetCurrency') }}</label>
+                  <select v-model="profileForm.budgetCurrency" class="form-select">
+                    <option v-for="currency in budgetCurrencyOptions" :key="currency" :value="currency">
+                      {{ currency }}
+                    </option>
+                  </select>
+                </div>
                 <div v-if="userStore.isConsultant" class="col-12">
                   <label class="form-label">Public consultant bio</label>
                   <textarea
@@ -215,6 +234,8 @@ const profileForm = ref({
   currentEducationLevel: '',
   preferredStudyLevel: '',
   preferredDestination: '',
+  maxBudget: '',
+  budgetCurrency: 'AUD',
   consultantBio: '',
 })
 
@@ -235,6 +256,8 @@ const preferredStudyOptions = [
   'profile.level.bootcamp',
   'profile.level.shortCourse',
 ]
+
+const budgetCurrencyOptions = ['AUD', 'USD', 'MYR', 'EUR', 'CAD', 'GBP', 'JPY', 'NZD']
 
 const profileEmail = computed(() => {
   return userStore.profile?.email || user.value?.primaryEmailAddress?.emailAddress || ''
@@ -266,6 +289,15 @@ const assignedAreasText = computed(() => {
 const consultantBioRemaining = computed(() => {
   return 420 - (profileForm.value.consultantBio?.length || 0)
 })
+const formattedBudget = computed(() => {
+  if (!profileForm.value.maxBudget) return ''
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: profileForm.value.budgetCurrency || 'AUD',
+    maximumFractionDigits: 0,
+  }).format(Number(profileForm.value.maxBudget))
+})
 
 const profileCompletion = computed(() => {
   const fields = isStudentProfile.value ? [
@@ -278,6 +310,8 @@ const profileCompletion = computed(() => {
     profileForm.value.currentEducationLevel,
     profileForm.value.preferredStudyLevel,
     profileForm.value.preferredDestination,
+    profileForm.value.maxBudget,
+    profileForm.value.budgetCurrency,
   ] : [
     profileForm.value.firstName,
     profileForm.value.lastName,
@@ -304,6 +338,7 @@ const profileSummary = computed(() => {
   return [
     { label: settingsStore.t('profile.nationality'), value: profileForm.value.nationality },
     { label: settingsStore.t('profile.destination'), value: profileForm.value.preferredDestination },
+    { label: settingsStore.t('profile.budget'), value: formattedBudget.value },
     { label: settingsStore.t('profile.currentLevel'), value: translatedLevel(profileForm.value.currentEducationLevel) },
     { label: settingsStore.t('profile.studyLevel'), value: translatedLevel(profileForm.value.preferredStudyLevel) },
     { label: settingsStore.t('profile.phone'), value: profileForm.value.phone },
@@ -343,6 +378,8 @@ function resetProfileForm() {
     currentEducationLevel: profile.currentEducationLevel || '',
     preferredStudyLevel: profile.preferredStudyLevel || '',
     preferredDestination: profile.preferredDestination || '',
+    maxBudget: profile.maxBudget ?? '',
+    budgetCurrency: profile.budgetCurrency || 'AUD',
     consultantBio: profile.consultantBio || '',
   }
 }

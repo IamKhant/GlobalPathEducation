@@ -459,6 +459,9 @@
               <h2>{{ userName(student) }}</h2>
               <p>{{ student.email }}</p>
               <small>{{ student.consultations?.length || 0 }} consultations / {{ student.bookmarks?.length || 0 }} saved</small>
+              <small v-if="student.maxBudget" class="d-block mt-1">
+                Budget: {{ formatBudget(student) }}
+              </small>
             </div>
             <div class="row-actions row-actions-inline">
               <button class="btn btn-sm btn-outline-primary" type="button" @click="changeUserRole(student, 'consultant')">
@@ -683,6 +686,57 @@
                 {{ programSaving ? 'Saving...' : editingProgramId ? 'Update program' : 'Create program' }}
               </button>
             </form>
+
+            <div v-if="promotionProgram" class="program-promotion-panel">
+              <div class="promotion-panel-head">
+                <div>
+                  <span class="promotion-kicker">Student targeting</span>
+                  <h3>Promote this program</h3>
+                  <p>
+                    Best student matches for
+                    <strong>{{ promotionProgram.title }}</strong>
+                  </p>
+                </div>
+                <button type="button" class="text-button" @click="clearPromotionSuggestions">
+                  Clear
+                </button>
+              </div>
+
+              <div v-if="promotionMatches.length" class="promotion-match-list">
+                <article
+                  v-for="match in promotionMatches"
+                  :key="match.student.id"
+                  class="promotion-match-card"
+                >
+                  <div class="promotion-match-top">
+                    <div class="promotion-avatar">{{ initials(match.student) }}</div>
+                    <div>
+                      <strong>{{ userName(match.student) }}</strong>
+                      <small>{{ match.student.email }}</small>
+                    </div>
+                    <span class="promotion-score">{{ match.score }}%</span>
+                  </div>
+                  <div class="promotion-reasons">
+                    <span v-for="reason in match.reasons" :key="reason">{{ reason }}</span>
+                  </div>
+                  <div class="promotion-student-meta">
+                    <span>{{ match.student.preferredDestination || 'No destination' }}</span>
+                    <span>{{ studentLevelLabel(match.student.preferredStudyLevel) }}</span>
+                    <span>{{ formatBudget(match.student) }}</span>
+                  </div>
+                  <a
+                    class="btn btn-sm btn-outline-primary w-100"
+                    :href="promotionMailto(match.student, promotionProgram)"
+                  >
+                    <i class="bi bi-envelope me-1"></i>Email student
+                  </a>
+                </article>
+              </div>
+              <div v-else class="promotion-empty">
+                No strong student matches yet. This usually means students have not completed
+                destination, study level, or budget details.
+              </div>
+            </div>
           </aside>
 
           <div class="grid-list-wrapper" style="min-width: 0;">
@@ -745,6 +799,8 @@ const homepageSaving = ref(false)
 const editingHomepageSection = ref('')
 const homepageDraft = ref({})
 const currentAdminId = ref(null)
+const promotionProgram = ref(null)
+const promotionMatches = ref([])
 const statuses = ['pending', 'confirmed', 'completed', 'cancelled']
 const adminConsultationStatusTabs = [
   { value: 'all', label: 'All' },
@@ -1217,14 +1273,19 @@ async function saveProgram() {
   programSaving.value = true
   try {
     const payload = { ...programForm.value, currency: programForm.value.currency?.toUpperCase() }
+    let savedProgram = null
+
     if (editingProgramId.value) {
       const { data } = await api.patch(`/api/admin/programs/${editingProgramId.value}`, payload)
       programs.value = programs.value.map((program) => (program.id === data.id ? data : program))
+      savedProgram = data
     } else {
       const { data } = await api.post('/api/admin/programs', payload)
       programs.value = [data, ...programs.value]
+      savedProgram = data
     }
     resetProgramForm()
+    showPromotionSuggestions(savedProgram)
     await fetchDashboard()
   } finally {
     programSaving.value = false
@@ -1253,6 +1314,114 @@ async function deleteProgram(id) {
 function resetProgramForm() {
   editingProgramId.value = null
   programForm.value = { ...emptyProgramForm }
+}
+
+function clearPromotionSuggestions() {
+  promotionProgram.value = null
+  promotionMatches.value = []
+}
+
+function showPromotionSuggestions(program) {
+  promotionProgram.value = program
+  promotionMatches.value = students.value
+    .map((student) => scoreStudentForProgram(student, program))
+    .filter((match) => match.score >= 50)
+    .sort((a, b) => b.rawScore - a.rawScore)
+    .slice(0, 8)
+}
+
+function scoreStudentForProgram(student, program) {
+  const reasons = []
+  let rawScore = 25
+
+  if (sameText(student.preferredDestination, program.country)) {
+    rawScore += 30
+    reasons.push('Destination match')
+  }
+
+  const preferredType = studyLevelToProgramType(student.preferredStudyLevel)
+  if (preferredType && sameText(preferredType, program.type)) {
+    rawScore += 28
+    reasons.push('Study level match')
+  }
+
+  const budgetScore = programBudgetScore(student, program)
+  if (budgetScore === 'within') {
+    rawScore += 24
+    reasons.push('Within budget')
+  } else if (budgetScore === 'near') {
+    rawScore += 12
+    reasons.push('Near budget')
+  }
+
+  const specializationText = normalizeText(program.specialization)
+  const educationText = normalizeText(student.currentEducationLevel)
+  if (educationText && specializationText.includes(educationText)) {
+    rawScore += 5
+  }
+
+  if (reasons.length === 0 && hasCompletePromotionProfile(student)) {
+    reasons.push('Profile complete')
+  }
+
+  return {
+    student,
+    rawScore,
+    score: Math.min(99, Math.max(40, rawScore)),
+    reasons: reasons.slice(0, 3),
+  }
+}
+
+function programBudgetScore(student, program) {
+  const budget = Number(student.maxBudget)
+  const tuition = Number(program.tuitionFee)
+
+  if (!budget || !tuition || !student.budgetCurrency || !program.currency) return null
+  if (!sameText(student.budgetCurrency, program.currency)) return null
+
+  if (tuition <= budget) return 'within'
+  if (tuition <= budget * 1.15) return 'near'
+  return 'over'
+}
+
+function hasCompletePromotionProfile(student) {
+  return Boolean(
+    student.preferredDestination &&
+      student.preferredStudyLevel &&
+      student.maxBudget &&
+      student.budgetCurrency,
+  )
+}
+
+function studyLevelToProgramType(levelKey) {
+  return {
+    'profile.level.diploma': 'Diploma',
+    'profile.level.bachelor': 'Bachelor',
+    'profile.level.master': 'Master',
+    'profile.level.bootcamp': 'Bootcamp',
+    'profile.level.shortCourse': 'Bootcamp',
+  }[levelKey] || ''
+}
+
+function studentLevelLabel(levelKey) {
+  return levelKey ? settingsStore.t(levelKey) : 'No level'
+}
+
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function sameText(a, b) {
+  return normalizeText(a) === normalizeText(b)
+}
+
+function promotionMailto(student, program) {
+  const subject = encodeURIComponent(`Program recommendation: ${program.title}`)
+  const body = encodeURIComponent(
+    `Hi ${student.firstName || userName(student)},\n\nBased on your study preferences, this program may be a strong match for you:\n\n${program.title}\n${program.institution}\n${program.city || ''}, ${program.country}\n\nYou can review it in GlobalPath Education or book a consultation if you would like guidance.\n\nBest,\nGlobalPath Education`,
+  )
+
+  return `mailto:${student.email}?subject=${subject}&body=${body}`
 }
 
 function userName(user) {
@@ -1297,6 +1466,16 @@ function formatDate(value) {
     day: 'numeric',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function formatBudget(user) {
+  if (!user?.maxBudget) return '-'
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: user.budgetCurrency || 'AUD',
+    maximumFractionDigits: 0,
+  }).format(Number(user.maxBudget))
 }
 </script>
 
@@ -1403,6 +1582,136 @@ function formatDate(value) {
 
 .program-workspace {
   grid-template-columns: 380px minmax(0, 1fr);
+}
+
+.program-promotion-panel {
+  background: #f8fafc;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  margin-top: 1rem;
+  padding: 0.95rem;
+}
+
+.promotion-panel-head {
+  align-items: flex-start;
+  border-bottom: 1px solid #e5edf7;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.promotion-kicker {
+  color: #f4a41b;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+}
+
+.promotion-panel-head h3 {
+  color: #0f172a;
+  font-size: 0.98rem;
+  font-weight: 850;
+  margin: 0;
+}
+
+.promotion-panel-head p {
+  color: #64748b;
+  font-size: 0.82rem;
+  margin: 0.25rem 0 0;
+}
+
+.promotion-match-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.promotion-match-card {
+  background: #ffffff;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  padding: 0.85rem;
+}
+
+.promotion-match-top {
+  align-items: center;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.promotion-avatar {
+  align-items: center;
+  background: #0f172a;
+  border-radius: 10px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 850;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.promotion-match-top strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.promotion-match-top small {
+  color: #64748b;
+  display: block;
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.promotion-score {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  color: #15803d;
+  font-size: 0.74rem;
+  font-weight: 850;
+  padding: 0.25rem 0.45rem;
+}
+
+.promotion-reasons,
+.promotion-student-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+
+.promotion-reasons span {
+  background: #eff6ff;
+  border-radius: 999px;
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.48rem;
+}
+
+.promotion-student-meta span {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.promotion-empty {
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .homepage-admin-layout {

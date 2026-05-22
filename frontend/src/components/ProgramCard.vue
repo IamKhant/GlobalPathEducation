@@ -3,7 +3,7 @@
     <!-- Country color banner -->
     <div class="card-banner" :style="{ background: countryGradient }">
       <div class="card-banner-flag">{{ countryFlag }}</div>
-      <span :class="['badge-type', program.type === 'Master' ? 'badge-master' : 'badge-bootcamp']">
+      <span :class="['badge-type', badgeClass]">
         {{ program.type }}
       </span>
       <div class="card-actions" @click.stop>
@@ -117,6 +117,15 @@ function adjustColor(hex, amount) {
   return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`
 }
 const countryFlag = computed(() => getCountryFlag(props.program.country))
+const badgeClass = computed(
+  () =>
+    ({
+      Bachelor: 'badge-bachelor',
+      Diploma: 'badge-diploma',
+      Master: 'badge-master',
+      Bootcamp: 'badge-bootcamp',
+    })[props.program.type] || 'badge-bootcamp',
+)
 const allTags = computed(
   () =>
     props.program.specialization
@@ -225,6 +234,14 @@ const feeBasisLabel = computed(
 .badge-bootcamp {
   background: rgba(244, 164, 27, 0.92);
   color: #5a3a00;
+}
+.badge-bachelor {
+  background: rgba(236, 253, 243, 0.95);
+  color: #15803d;
+}
+.badge-diploma {
+  background: rgba(240, 249, 255, 0.95);
+  color: #0369a1;
 }
 
 /* Body */

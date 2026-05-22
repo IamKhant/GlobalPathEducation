@@ -36,6 +36,105 @@
         </div>
       </div>
 
+      <!-- Recommended Programs -->
+      <section class="recommendation-panel mb-5">
+        <div class="recommendation-header">
+          <div>
+            <p class="recommendation-kicker mb-1">
+              {{ settingsStore.t('dashboard.recommendations.kicker') }}
+            </p>
+            <h5 class="recommendation-title mb-1">
+              {{ settingsStore.t('dashboard.recommendations.title') }}
+            </h5>
+            <p class="recommendation-subtitle mb-0">
+              {{ recommendationSubtitle }}
+            </p>
+          </div>
+          <RouterLink
+            :to="recommendedBrowseLink"
+            class="btn btn-sm btn-gpe-outline"
+          >
+            {{ settingsStore.t('dashboard.recommendations.browseMatches') }}
+          </RouterLink>
+        </div>
+
+        <div v-if="recommendationsLoading" class="recommendation-loading">
+          <div class="spinner-border spinner-border-sm text-primary"></div>
+          <span>{{ settingsStore.t('dashboard.recommendations.loading') }}</span>
+        </div>
+        <div v-else-if="!userStore.isStudentProfileComplete" class="recommendation-empty">
+          <i class="bi bi-person-lines-fill"></i>
+          <div>
+            <h6>{{ settingsStore.t('dashboard.recommendations.completeProfileTitle') }}</h6>
+            <p>{{ settingsStore.t('dashboard.recommendations.completeProfileText') }}</p>
+          </div>
+          <RouterLink to="/profile" class="btn btn-sm btn-gpe-primary">
+            {{ settingsStore.t('dashboard.editProfile') }}
+          </RouterLink>
+        </div>
+        <div v-else-if="recommendedPrograms.length === 0" class="recommendation-empty">
+          <i class="bi bi-search"></i>
+          <div>
+            <h6>{{ settingsStore.t('dashboard.recommendations.emptyTitle') }}</h6>
+            <p>{{ settingsStore.t('dashboard.recommendations.emptyText') }}</p>
+          </div>
+          <RouterLink to="/programs" class="btn btn-sm btn-gpe-primary">
+            {{ settingsStore.t('dashboard.browsePrograms') }}
+          </RouterLink>
+        </div>
+        <div v-else class="recommendation-grid">
+          <article
+            v-for="item in recommendedPrograms"
+            :key="item.program.id"
+            class="recommendation-card"
+          >
+            <div class="recommendation-card-top" :style="{ background: getCountryGradient(item.program.country) }">
+              <span class="recommendation-flag">{{ getCountryFlag(item.program.country) }}</span>
+              <span class="recommendation-score">
+                {{ item.score }}% {{ settingsStore.t('dashboard.recommendations.match') }}
+              </span>
+            </div>
+            <div class="recommendation-card-body">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="recommendation-type">{{ item.program.type }}</div>
+                  <h6 class="recommendation-program-title">{{ item.program.title }}</h6>
+                  <p class="recommendation-school">
+                    {{ item.program.institution }} · {{ item.program.city }}, {{ item.program.country }}
+                  </p>
+                </div>
+                <button
+                  class="recommendation-save"
+                  :class="{ active: userStore.bookmarkedIds.has(item.program.id) }"
+                  :title="settingsStore.t('programCard.saveProgram')"
+                  @click="userStore.toggleBookmark(item.program)"
+                >
+                  <i :class="userStore.bookmarkedIds.has(item.program.id) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'"></i>
+                </button>
+              </div>
+
+              <div class="recommendation-meta">
+                <span><i class="bi bi-cash"></i>{{ settingsStore.formatMoney(item.program.tuitionFee, item.program.currency) }}</span>
+                <span><i class="bi bi-clock"></i>{{ item.program.durationMonths }} {{ settingsStore.t('programCard.monthShort') }}</span>
+              </div>
+
+              <div class="recommendation-reasons">
+                <span v-for="reason in item.reasons" :key="reason">{{ reason }}</span>
+              </div>
+
+              <div class="recommendation-actions">
+                <RouterLink :to="`/programs/${item.program.id}`" class="btn btn-sm btn-gpe-primary">
+                  {{ settingsStore.t('dashboard.recommendations.viewProgram') }}
+                </RouterLink>
+                <RouterLink :to="`/consult?programId=${item.program.id}`" class="btn btn-sm btn-gpe-outline">
+                  {{ settingsStore.t('dashboard.bookConsultation') }}
+                </RouterLink>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <div class="row g-4">
         <!-- Saved Programs -->
         <div class="col-lg-6">
@@ -156,6 +255,8 @@ import { RouterLink } from 'vue-router'
 import { useUser } from '@clerk/vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+import { getCountryFlag } from '@/utils/countryFlags'
+import { getCountryGradient } from '@/utils/countryStyles'
 import api from '@/api'
 
 const { user } = useUser()
@@ -166,6 +267,8 @@ const loading = ref(true)
 const bookmarkSearch = ref('')
 const consultationSearch = ref('')
 const consultationStatus = ref('all')
+const candidatePrograms = ref([])
+const recommendationsLoading = ref(true)
 
 const firstName = computed(() => userStore.profile?.firstName || user.value?.firstName || 'there')
 const completedCount = computed(() => consultations.value.filter(c => c.status === 'completed').length)
@@ -210,8 +313,40 @@ const stats = computed(() => [
   { icon: '✅', value: completedCount.value, label: settingsStore.t('dashboard.consultationsDone') },
 ])
 
+const recommendedBrowseLink = computed(() => ({
+  path: '/programs',
+  query: {
+    country: userStore.profile?.preferredDestination || undefined,
+    type: preferredProgramType.value || undefined,
+  },
+}))
+
+const preferredProgramType = computed(() => studyLevelToProgramType(userStore.profile?.preferredStudyLevel))
+
+const recommendationSubtitle = computed(() => {
+  const profile = userStore.profile
+  if (!profile?.preferredDestination || !profile?.preferredStudyLevel) {
+    return settingsStore.t('dashboard.recommendations.subtitleIncomplete')
+  }
+
+  return settingsStore.t('dashboard.recommendations.subtitle', {
+    destination: profile.preferredDestination,
+    level: translatedLevel(profile.preferredStudyLevel),
+  })
+})
+
+const recommendedPrograms = computed(() => {
+  if (!userStore.isStudentProfileComplete) return []
+
+  return candidatePrograms.value
+    .map((program) => scoreProgram(program))
+    .sort((a, b) => b.rawScore - a.rawScore)
+    .slice(0, 3)
+})
+
 onMounted(async () => {
   await Promise.all([userStore.fetchBookmarks(), userStore.fetchProfile()])
+  await fetchRecommendations()
 
   try {
     const { data } = await api.get('/api/consultations')
@@ -222,6 +357,122 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+async function fetchRecommendations() {
+  recommendationsLoading.value = true
+
+  try {
+    const { data } = await api.get('/api/programs', {
+      params: {
+        page: 1,
+        limit: 80,
+      },
+    })
+
+    candidatePrograms.value = data.data || []
+    await fetchRecommendationRates()
+  } catch (error) {
+    console.error(error)
+    candidatePrograms.value = []
+  } finally {
+    recommendationsLoading.value = false
+  }
+}
+
+async function fetchRecommendationRates() {
+  const budgetCurrency = userStore.profile?.budgetCurrency
+  const currencies = new Set(
+    candidatePrograms.value
+      .map((program) => program.currency)
+      .filter((currency) => currency && currency !== budgetCurrency),
+  )
+
+  await Promise.all([
+    settingsStore.fetchRatesForPrograms(candidatePrograms.value),
+    ...[...currencies].map((currency) => settingsStore.fetchRate(currency, budgetCurrency)),
+  ])
+}
+
+function studyLevelToProgramType(levelKey) {
+  return {
+    'profile.level.diploma': 'Diploma',
+    'profile.level.bachelor': 'Bachelor',
+    'profile.level.master': 'Master',
+    'profile.level.bootcamp': 'Bootcamp',
+    'profile.level.shortCourse': 'Bootcamp',
+  }[levelKey] || ''
+}
+
+function translatedLevel(levelKey) {
+  return levelKey ? settingsStore.t(levelKey) : ''
+}
+
+function normalizedText(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function isDestinationMatch(program) {
+  return normalizedText(program.country) === normalizedText(userStore.profile?.preferredDestination)
+}
+
+function budgetMatch(program) {
+  const budget = Number(userStore.profile?.maxBudget)
+  const budgetCurrency = userStore.profile?.budgetCurrency
+
+  if (!budget || !budgetCurrency || !program.tuitionFee || !program.currency) return null
+
+  const converted = settingsStore.convertAmount(program.tuitionFee, program.currency, budgetCurrency)
+  const convertedCurrency = settingsStore.displayCurrencyFor(program.currency, budgetCurrency)
+
+  if (convertedCurrency !== budgetCurrency) return null
+
+  return {
+    amount: converted,
+    fits: converted <= budget,
+    close: converted > budget && converted <= budget * 1.15,
+  }
+}
+
+function scoreProgram(program) {
+  const reasons = []
+  let rawScore = 30
+
+  if (isDestinationMatch(program)) {
+    rawScore += 28
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonDestination'))
+  }
+
+  if (preferredProgramType.value && program.type === preferredProgramType.value) {
+    rawScore += 26
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonLevel'))
+  }
+
+  const affordability = budgetMatch(program)
+  if (affordability?.fits) {
+    rawScore += 24
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonBudget'))
+  } else if (affordability?.close) {
+    rawScore += 12
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonNearBudget'))
+  }
+
+  const preferredDestination = normalizedText(userStore.profile?.preferredDestination)
+  const specialization = normalizedText(program.specialization)
+  if (preferredDestination && specialization.includes(preferredDestination)) {
+    rawScore += 6
+  }
+
+  if (reasons.length === 0) {
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonPopular'))
+  }
+
+  return {
+    program,
+    rawScore,
+    score: Math.min(99, Math.max(55, rawScore)),
+    reasons: reasons.slice(0, 3),
+  }
+}
 
 async function cancel(id) {
   await api.patch(`/api/consultations/${id}/cancel`)
@@ -373,6 +624,206 @@ function consultationCount(status) {
   color: #0f172a;
 }
 
+/* Recommended programs */
+.recommendation-panel {
+  background: #ffffff;
+  border: 1px solid #e5edf7;
+  border-radius: 18px;
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06);
+  padding: 1.25rem;
+}
+
+.recommendation-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.recommendation-kicker {
+  color: #f4a41b;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recommendation-title {
+  color: #0f172a;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.recommendation-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.recommendation-loading,
+.recommendation-empty {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #64748b;
+  display: flex;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.recommendation-empty i {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 12px;
+  color: #2563eb;
+  display: inline-flex;
+  font-size: 1.3rem;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.recommendation-empty h6 {
+  color: #0f172a;
+  font-weight: 800;
+  margin: 0 0 0.15rem;
+}
+
+.recommendation-empty p {
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.recommendation-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.recommendation-card {
+  border: 1px solid #e8eef5;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.recommendation-card-top {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 0.8rem;
+}
+
+.recommendation-flag {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.recommendation-score {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 850;
+  padding: 0.3rem 0.55rem;
+}
+
+.recommendation-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.recommendation-type {
+  color: #2563eb;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.recommendation-program-title {
+  color: #0f172a;
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.25;
+  margin: 0.15rem 0;
+}
+
+.recommendation-school {
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.recommendation-save {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  color: #64748b;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.recommendation-save.active {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #f4a41b;
+}
+
+.recommendation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0.75rem 0;
+}
+
+.recommendation-meta span {
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.recommendation-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.recommendation-reasons span {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  color: #15803d;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.5rem;
+}
+
+.recommendation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
 .quick-action-card {
   display: flex;
   flex-direction: column;
@@ -416,8 +867,24 @@ function consultationCount(status) {
     flex-direction: column;
   }
 
+  .recommendation-header,
+  .recommendation-empty {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+  }
+
   .quick-actions-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .recommendation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

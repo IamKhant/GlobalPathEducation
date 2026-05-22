@@ -32,6 +32,22 @@ export const useUserStore = defineStore('user', () => {
   const isConsultant = computed(() => role.value === 'consultant')
   const isAdmin = computed(() => role.value === 'admin')
   const isStaff = computed(() => ['consultant', 'admin'].includes(role.value))
+  const isStudentProfileComplete = computed(() => {
+    if (!profile.value || role.value !== 'student') return true
+
+    return [
+      profile.value.firstName,
+      profile.value.lastName,
+      profile.value.phone,
+      profile.value.nationality,
+      profile.value.dateOfBirth,
+      profile.value.currentEducationLevel,
+      profile.value.preferredStudyLevel,
+      profile.value.preferredDestination,
+      profile.value.maxBudget,
+      profile.value.budgetCurrency,
+    ].every(Boolean)
+  })
 
   async function fetchBookmarks() {
     try {
@@ -145,6 +161,7 @@ export const useUserStore = defineStore('user', () => {
     isConsultant,
     isAdmin,
     isStaff,
+    isStudentProfileComplete,
     bookmarks,
     compareList,
     bookmarkedIds,

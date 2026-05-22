@@ -50,6 +50,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/onboarding',
+      name: 'onboarding',
+      component: () => import('@/views/OnboardingView.vue'),
+      meta: { requiresAuth: true, roles: ['student'], onboarding: true },
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: () => import('@/views/ProfileView.vue'),
@@ -83,10 +89,6 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const isAuthPage = to.name === 'sign-in' || to.name === 'sign-up'
 
-  if (!to.meta.requiresAuth && !isAuthPage && !to.meta.studentOnly) {
-    return true
-  }
-
   const clerk = await waitForClerkLoaded()
 
   if (to.meta.requiresAuth && !clerk?.isSignedIn) {
@@ -99,13 +101,64 @@ router.beforeEach(async (to) => {
   }
 
   let currentRole = null
+  let currentUser = null
+
+  async function fetchCurrentUser() {
+    if (currentUser) return currentUser
+
+    const { data } = await api.get('/api/users/me')
+    currentUser = data || {}
+    currentRole = currentUser.role || 'student'
+    return currentUser
+  }
 
   async function fetchCurrentRole() {
     if (currentRole) return currentRole
 
-    const { data } = await api.get('/api/users/me')
-    currentRole = data?.role || 'student'
+    await fetchCurrentUser()
     return currentRole
+  }
+
+  function isStudentProfileComplete(user) {
+    if (!user || user.role !== 'student') return true
+
+    return [
+      user.firstName,
+      user.lastName,
+      user.phone,
+      user.nationality,
+      user.dateOfBirth,
+      user.currentEducationLevel,
+      user.preferredStudyLevel,
+      user.preferredDestination,
+      user.maxBudget,
+      user.budgetCurrency,
+    ].every(Boolean)
+  }
+
+  if (clerk?.isSignedIn && !isAuthPage) {
+    try {
+      const user = await fetchCurrentUser()
+
+      if (user.role === 'student' && !isStudentProfileComplete(user) && to.name !== 'onboarding') {
+        return {
+          path: '/onboarding',
+          query: {
+            redirect_url: to.fullPath,
+          },
+        }
+      }
+
+      if (to.name === 'onboarding' && isStudentProfileComplete(user)) {
+        return { path: '/dashboard' }
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  if (!to.meta.requiresAuth && !isAuthPage && !to.meta.studentOnly) {
+    return true
   }
 
   if (to.name === 'dashboard') {

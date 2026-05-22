@@ -153,7 +153,7 @@
                 <span v-else-if="userInitial">{{ userInitial }}</span>
                 <i v-else class="bi bi-person-fill"></i>
               </div>
-              <span class="nav-avatar-name">{{ userFirstName }}</span>
+              <span class="nav-avatar-name" :title="userDisplayName">{{ userDisplayName }}</span>
             </RouterLink>
 
           </template>
@@ -187,8 +187,15 @@ const { user } = useUser()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
-const userFirstName = computed(() => {
-  return userStore.profile?.firstName || user.value?.firstName || ''
+const userDisplayName = computed(() => {
+  const profileName = [userStore.profile?.firstName, userStore.profile?.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+  const clerkName = user.value?.fullName ||
+    [user.value?.firstName, user.value?.lastName].filter(Boolean).join(' ').trim()
+
+  return profileName || clerkName || user.value?.primaryEmailAddress?.emailAddress || ''
 })
 
 const userImageUrl = computed(() => {
@@ -196,9 +203,13 @@ const userImageUrl = computed(() => {
 })
 
 const userInitial = computed(() => {
-  const name = userStore.profile?.firstName || user.value?.firstName ||
-               userStore.profile?.lastName || user.value?.lastName || ''
-  return name ? name.charAt(0).toUpperCase() : ''
+  const firstInitial = (userStore.profile?.firstName || user.value?.firstName || '').charAt(0)
+  const lastInitial = (userStore.profile?.lastName || user.value?.lastName || '').charAt(0)
+  const initials = `${firstInitial}${lastInitial}`.trim()
+
+  if (initials) return initials.toUpperCase()
+
+  return userDisplayName.value ? userDisplayName.value.charAt(0).toUpperCase() : ''
 })
 
 const isScrolled = ref(false)
@@ -545,7 +556,7 @@ onBeforeUnmount(() => {
   font-size: 0.82rem;
   font-weight: 700;
   color: #0f172a;
-  max-width: 100px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -18,6 +18,15 @@ function normalizeDate(value) {
   return date;
 }
 
+function normalizeNumber(value) {
+  if (value === '' || value == null) return null;
+
+  const number = Number.parseFloat(value);
+  if (Number.isNaN(number) || number < 0) return undefined;
+
+  return number;
+}
+
 router.get('/me', requireApiAuth, async (req, res) => {
   try {
     const user = await getOrCreateCurrentUser(req);
@@ -34,10 +43,17 @@ router.patch('/me', requireApiAuth, async (req, res) => {
   try {
     const user = await getOrCreateCurrentUser(req);
     const dateOfBirth = normalizeDate(req.body.dateOfBirth);
+    const maxBudget = normalizeNumber(req.body.maxBudget);
 
     if (dateOfBirth === undefined) {
       return res.status(400).json({
         message: 'Invalid date of birth',
+      });
+    }
+
+    if (maxBudget === undefined) {
+      return res.status(400).json({
+        message: 'Invalid budget amount',
       });
     }
 
@@ -50,6 +66,8 @@ router.patch('/me', requireApiAuth, async (req, res) => {
       currentEducationLevel: normalizeText(req.body.currentEducationLevel),
       preferredStudyLevel: normalizeText(req.body.preferredStudyLevel),
       preferredDestination: normalizeText(req.body.preferredDestination),
+      maxBudget,
+      budgetCurrency: normalizeText(req.body.budgetCurrency)?.toUpperCase() || null,
     };
 
     if (user.role === 'consultant') {

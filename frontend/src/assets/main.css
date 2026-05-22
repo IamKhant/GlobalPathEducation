@@ -203,6 +203,8 @@ body {
 }
 .badge-master { background: #e8f0fe; color: #1a3a5c; }
 .badge-bootcamp { background: #fff3cd; color: #856404; }
+.badge-bachelor { background: #dcfce7; color: #15803d; }
+.badge-diploma { background: #e0f2fe; color: #0369a1; }
 
 /* ══════════════════════════════════════════════
    Tag Chips

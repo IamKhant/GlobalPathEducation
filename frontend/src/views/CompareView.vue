@@ -59,7 +59,7 @@
             <div v-for="(row, rIdx) in compareRows" :key="row.key" :class="['compare-row', { alt: rIdx % 2 === 1 }]">
               <span class="compare-row-label">{{ settingsStore.t(row.labelKey) }}</span>
               <div class="compare-row-value">
-                <span v-if="row.key === 'type'" :class="['compare-type-badge', p.type === 'Master' ? 'master' : 'bootcamp']">
+                <span v-if="row.key === 'type'" :class="['compare-type-badge', programTypeClass(p.type)]">
                   {{ p.type }}
                 </span>
                 <span v-else-if="row.key === 'country'">{{ getCountryFlag(p.country) }} {{ p.country }}</span>
@@ -143,6 +143,17 @@ function specializationTags(p) {
 function shortDescription(description) {
   if (!description) return '-'
   return description.length > 120 ? `${description.slice(0, 120)}...` : description
+}
+
+function programTypeClass(type) {
+  return (
+    {
+      Bachelor: 'bachelor',
+      Diploma: 'diploma',
+      Master: 'master',
+      Bootcamp: 'bootcamp',
+    }[type] || 'bootcamp'
+  )
 }
 
 const compareRows = [
@@ -391,6 +402,16 @@ const compareRows = [
 .compare-type-badge.bootcamp {
   background: #fff3cd;
   color: #856404;
+}
+
+.compare-type-badge.bachelor {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.compare-type-badge.diploma {
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .compare-fee-basis {

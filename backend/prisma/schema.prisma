@@ -83,6 +83,8 @@ model User {
   currentEducationLevel String?   @map("current_education_level")
   preferredStudyLevel   String?   @map("preferred_study_level")
   preferredDestination  String?   @map("preferred_destination")
+  maxBudget             Float?    @map("max_budget")
+  budgetCurrency        String?   @map("budget_currency")
   profileImageUrl       String?   @map("profile_image_url")
 
   bookmarks             Bookmark[]

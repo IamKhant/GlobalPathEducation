@@ -112,11 +112,7 @@
                   <i
                     :class="[
                       'me-1',
-                      t === 'Master'
-                        ? 'bi bi-mortarboard'
-                        : t === 'Bootcamp'
-                          ? 'bi bi-lightning'
-                          : 'bi bi-grid',
+                      programTypeIcon(t),
                     ]"
                   ></i>
                   {{ programTypeLabel(t) }}
@@ -292,7 +288,7 @@ const durationOptions = [
   { value: '18', labelKey: 'programs.duration.oneHalfYear' },
   { value: '24', labelKey: 'programs.duration.twoYears' },
 ]
-const programTypeOptions = ['All', 'Master', 'Bootcamp']
+const programTypeOptions = ['All', 'Bachelor', 'Diploma', 'Master', 'Bootcamp']
 
 onMounted(async () => {
   await programStore.fetchMeta()
@@ -385,9 +381,21 @@ const visibleCountries = computed(() => {
 function programTypeLabel(type) {
   return {
     All: settingsStore.t('programs.filter.allTypes'),
+    Bachelor: settingsStore.t('programs.filter.bachelor'),
+    Diploma: settingsStore.t('programs.filter.diploma'),
     Master: settingsStore.t('programs.filter.master'),
     Bootcamp: settingsStore.t('programs.filter.bootcamp'),
   }[type]
+}
+
+function programTypeIcon(type) {
+  return {
+    All: 'bi bi-grid',
+    Bachelor: 'bi bi-journal-code',
+    Diploma: 'bi bi-award',
+    Master: 'bi bi-mortarboard',
+    Bootcamp: 'bi bi-lightning',
+  }[type] || 'bi bi-grid'
 }
 
 // Smart pagination: show first, last, current ±1, with ellipsis
@@ -567,21 +575,28 @@ const visiblePages = computed(() => {
 
 /* Type toggle */
 .type-toggle-group {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 .type-toggle-btn {
-  flex: 1;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   border-radius: 10px;
-  padding: 6px 4px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 8px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.type-toggle-btn:first-child {
+  grid-column: 1 / -1;
 }
 .type-toggle-btn:hover {
   border-color: #2563eb;

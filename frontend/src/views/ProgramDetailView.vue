@@ -23,12 +23,7 @@
           <div class="d-flex align-items-center gap-3 mb-3">
             <div class="hero-avatar">{{ program.institution.charAt(0) }}</div>
             <div>
-              <span
-                :class="[
-                  'hero-badge',
-                  program.type === 'Master' ? 'badge-master' : 'badge-bootcamp',
-                ]"
-              >
+              <span :class="['hero-badge', badgeClass]">
                 {{ program.type }}
               </span>
               <div class="hero-country mt-1">
@@ -258,6 +253,15 @@ watch(
 )
 const countryGradient = computed(() => getCountryGradient(program.value?.country))
 const countryFlag = computed(() => getCountryFlag(program.value?.country))
+const badgeClass = computed(
+  () =>
+    ({
+      Bachelor: 'badge-bachelor',
+      Diploma: 'badge-diploma',
+      Master: 'badge-master',
+      Bootcamp: 'badge-bootcamp',
+    })[program.value?.type] || 'badge-bootcamp',
+)
 const displayTitle = computed(() => activeTranslation.value?.title || program.value?.title || '')
 const displayDescription = computed(
   () => activeTranslation.value?.description || program.value?.description || '',
@@ -420,6 +424,14 @@ async function loadProgramTranslation() {
 .badge-bootcamp {
   background: rgba(244, 164, 27, 0.9);
   color: #5a3a00;
+}
+.badge-bachelor {
+  background: rgba(236, 253, 243, 0.94);
+  color: #15803d;
+}
+.badge-diploma {
+  background: rgba(240, 249, 255, 0.94);
+  color: #0369a1;
 }
 
 .hero-country {

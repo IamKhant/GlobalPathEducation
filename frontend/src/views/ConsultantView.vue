@@ -301,6 +301,10 @@
                     </dd>
                   </div>
                   <div>
+                    <dt>{{ settingsStore.t('profile.budget') }}</dt>
+                    <dd>{{ formatBudget(consultation.user) }}</dd>
+                  </div>
+                  <div>
                     <dt>{{ settingsStore.t('consultant.consultations.requested') }}</dt>
                     <dd>{{ formatDate(consultation.createdAt) }}</dd>
                   </div>
@@ -365,11 +369,16 @@
                   <dt>{{ settingsStore.t('consultant.students.destination') }}</dt>
                   <dd>{{ student.preferredDestination || '-' }}</dd>
                 </div>
+                <div>
+                  <dt>{{ settingsStore.t('profile.budget') }}</dt>
+                  <dd>{{ formatBudget(student) }}</dd>
+                </div>
               </dl>
               <div class="student-card-tags">
                 <span v-if="student.preferredDestination">{{ student.preferredDestination }}</span>
                 <span v-if="student.preferredStudyLevel">{{ profileValue(student.preferredStudyLevel) }}</span>
                 <span v-if="student.currentEducationLevel">{{ profileValue(student.currentEducationLevel) }}</span>
+                <span v-if="student.maxBudget">{{ formatBudget(student) }}</span>
               </div>
               <div class="student-footer">
                 <span>{{ settingsStore.t('consultant.students.savedPrograms', { count: student.bookmarks?.length || 0 }) }}</span>
@@ -436,7 +445,8 @@ const studentProfilesReady = computed(() => {
     return Boolean(
       student.preferredDestination ||
         student.preferredStudyLevel ||
-        student.currentEducationLevel,
+        student.currentEducationLevel ||
+        student.maxBudget,
     )
   }).length
 })
@@ -494,6 +504,8 @@ const filteredStudents = computed(() => {
       student.email,
       student.nationality,
       student.preferredDestination,
+      student.maxBudget,
+      student.budgetCurrency,
       student.currentEducationLevel,
       student.preferredStudyLevel,
     ]
@@ -574,7 +586,8 @@ function hasProfileContext(student) {
   return Boolean(
     student.preferredDestination ||
       student.preferredStudyLevel ||
-      student.currentEducationLevel,
+      student.currentEducationLevel ||
+      student.maxBudget,
   )
 }
 
@@ -597,6 +610,16 @@ function formatDate(value) {
     month: 'short',
     year: 'numeric',
   })
+}
+
+function formatBudget(student) {
+  if (!student?.maxBudget) return '-'
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: student.budgetCurrency || 'AUD',
+    maximumFractionDigits: 0,
+  }).format(Number(student.maxBudget))
 }
 </script>
 
