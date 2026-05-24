@@ -724,12 +724,20 @@
                     <span>{{ studentLevelLabel(match.student.preferredStudyLevel) }}</span>
                     <span>{{ formatBudget(match.student) }}</span>
                   </div>
-                  <a
-                    class="btn btn-sm btn-outline-primary w-100"
-                    :href="promotionMailto(match.student, promotionProgram)"
+                  <button
+                    class="btn btn-sm w-100"
+                    :class="isPromotionSent(match.student) ? 'btn-success' : 'btn-outline-primary'"
+                    type="button"
+                    :disabled="isPromotionSending(match.student) || isPromotionSent(match.student)"
+                    @click="sendPromotionEmail(match)"
                   >
-                    <i class="bi bi-envelope me-1"></i>Email student
-                  </a>
+                    <span
+                      v-if="isPromotionSending(match.student)"
+                      class="spinner-border spinner-border-sm me-1"
+                    ></span>
+                    <i v-else class="bi bi-envelope me-1"></i>
+                    {{ promotionButtonLabel(match.student) }}
+                  </button>
                 </article>
               </div>
               <div v-else class="promotion-empty">
@@ -801,6 +809,8 @@ const homepageDraft = ref({})
 const currentAdminId = ref(null)
 const promotionProgram = ref(null)
 const promotionMatches = ref([])
+const promotionSendingKeys = ref([])
+const promotionSentKeys = ref([])
 const statuses = ['pending', 'confirmed', 'completed', 'cancelled']
 const adminConsultationStatusTabs = [
   { value: 'all', label: 'All' },
@@ -1319,15 +1329,60 @@ function resetProgramForm() {
 function clearPromotionSuggestions() {
   promotionProgram.value = null
   promotionMatches.value = []
+  promotionSendingKeys.value = []
+  promotionSentKeys.value = []
 }
 
 function showPromotionSuggestions(program) {
   promotionProgram.value = program
+  promotionSendingKeys.value = []
+  promotionSentKeys.value = []
   promotionMatches.value = students.value
     .map((student) => scoreStudentForProgram(student, program))
     .filter((match) => match.score >= 50)
     .sort((a, b) => b.rawScore - a.rawScore)
     .slice(0, 8)
+}
+
+function promotionKey(student, program = promotionProgram.value) {
+  return `${program?.id || 'program'}:${student.id}`
+}
+
+function isPromotionSending(student) {
+  return promotionSendingKeys.value.includes(promotionKey(student))
+}
+
+function isPromotionSent(student) {
+  return promotionSentKeys.value.includes(promotionKey(student))
+}
+
+function promotionButtonLabel(student) {
+  if (isPromotionSending(student)) return 'Sending...'
+  if (isPromotionSent(student)) return 'Sent'
+  return 'Send email'
+}
+
+async function sendPromotionEmail(match) {
+  if (!promotionProgram.value) return
+
+  const key = promotionKey(match.student)
+  promotionSendingKeys.value = [...promotionSendingKeys.value, key]
+
+  try {
+    await api.post('/api/admin/program-promotions/send', {
+      programId: promotionProgram.value.id,
+      studentId: match.student.id,
+      matchScore: match.score,
+      matchReasons: match.reasons,
+    })
+
+    promotionSentKeys.value = [...promotionSentKeys.value, key]
+  } catch (error) {
+    console.error(error)
+    alert(error.response?.data?.message || 'Failed to send promotion email.')
+  } finally {
+    promotionSendingKeys.value = promotionSendingKeys.value.filter((item) => item !== key)
+  }
 }
 
 function scoreStudentForProgram(student, program) {
@@ -1413,15 +1468,6 @@ function normalizeText(value) {
 
 function sameText(a, b) {
   return normalizeText(a) === normalizeText(b)
-}
-
-function promotionMailto(student, program) {
-  const subject = encodeURIComponent(`Program recommendation: ${program.title}`)
-  const body = encodeURIComponent(
-    `Hi ${student.firstName || userName(student)},\n\nBased on your study preferences, this program may be a strong match for you:\n\n${program.title}\n${program.institution}\n${program.city || ''}, ${program.country}\n\nYou can review it in GlobalPath Education or book a consultation if you would like guidance.\n\nBest,\nGlobalPath Education`,
-  )
-
-  return `mailto:${student.email}?subject=${subject}&body=${body}`
 }
 
 function userName(user) {

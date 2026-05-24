@@ -45,6 +45,171 @@ function parseProgramPayload(body) {
   };
 }
 
+function userName(user) {
+  return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function formatProgramMoney(program) {
+  if (program.tuitionFee === 0) return 'Free';
+  if (program.tuitionFee == null || !program.currency) return 'Contact institution';
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: program.currency,
+    maximumFractionDigits: 0,
+  }).format(program.tuitionFee);
+}
+
+function feeBasisLabel(feeBasis) {
+  return {
+    annual: '/ year',
+    total: 'total',
+    per_term: '/ term',
+  }[feeBasis] || '';
+}
+
+function programPromotionEmail(student, program) {
+  const studentName = student.firstName || userName(student);
+  const location = [program.city, program.country].filter(Boolean).join(', ');
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const programUrl = `${frontendUrl.replace(/\/$/, '')}/programs/${program.id}`;
+  const tuition = `${formatProgramMoney(program)} ${feeBasisLabel(program.feeBasis)}`.trim();
+  const subject = `Recommended program: ${program.title}`;
+  const text = `Hi ${studentName},
+
+We found a program that may match your study preferences.
+
+Program Name: ${program.title}
+Institution: ${program.institution}
+Program Type: ${program.type}
+Location: ${location || '-'}
+Duration: ${program.durationMonths ? `${program.durationMonths} months` : '-'}
+Tuition: ${tuition}
+
+View program: ${programUrl}
+${program.websiteUrl ? `Official page: ${program.websiteUrl}` : ''}
+
+You can review this program in GlobalPath Education or book a consultation if you would like guidance.
+
+Best,
+GlobalPath Education`;
+
+  const rows = [
+    ['Program Name', program.title],
+    ['Institution', program.institution],
+    ['Program Type', program.type],
+    ['Location', location || '-'],
+    ['Duration', program.durationMonths ? `${program.durationMonths} months` : '-'],
+    ['Tuition', tuition],
+    ['Language', program.language || '-'],
+  ];
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7fb;padding:28px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e5edf7;border-radius:14px;overflow:hidden;">
+            <tr>
+              <td style="background:#0f172a;padding:24px 28px;color:#ffffff;">
+                <div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f4a41b;">GlobalPath Education</div>
+                <h1 style="margin:8px 0 0;font-size:24px;line-height:1.25;color:#ffffff;">A program recommendation for you</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:26px 28px;">
+                <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Hi ${escapeHtml(studentName)},</p>
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#475569;">
+                  Based on your study preferences, our team found a program that may be a strong fit for your goals.
+                </p>
+
+                <div style="border:1px solid #dbe3ef;border-radius:12px;overflow:hidden;margin:0 0 22px;">
+                  <div style="background:#f8fafc;padding:14px 16px;border-bottom:1px solid #dbe3ef;">
+                    <strong style="font-size:15px;color:#0f172a;">Program Details</strong>
+                  </div>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                    ${rows
+                      .map(([label, value]) => `
+                    <tr>
+                      <td style="width:36%;padding:12px 16px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;font-weight:700;">${escapeHtml(label)}</td>
+                      <td style="padding:12px 16px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(value)}</td>
+                    </tr>`)
+                      .join('')}
+                  </table>
+                </div>
+
+                <div style="margin:0 0 22px;">
+                  <a href="${escapeHtml(programUrl)}" style="display:inline-block;background:#f4a41b;color:#0f172a;text-decoration:none;font-weight:800;border-radius:999px;padding:12px 18px;margin-right:8px;">View Program</a>
+                  ${
+                    program.websiteUrl
+                      ? `<a href="${escapeHtml(program.websiteUrl)}" style="display:inline-block;background:#ffffff;color:#1a3a5c;text-decoration:none;font-weight:800;border:1px solid #cbd5e1;border-radius:999px;padding:11px 18px;">Official Website</a>`
+                      : ''
+                  }
+                </div>
+
+                <p style="margin:0;font-size:14px;line-height:1.6;color:#64748b;">
+                  If you would like help deciding whether this program is right for you, you can book a consultation through GlobalPath Education.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#f8fafc;border-top:1px solid #e5edf7;padding:18px 28px;color:#64748b;font-size:12px;line-height:1.5;">
+                You received this email because you created a GlobalPath Education profile and this program matched your study preferences.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return { subject, text, html };
+}
+
+async function sendResendEmail({ to, subject, text, html }) {
+  if (!process.env.RESEND_API_KEY) {
+    const error = new Error('RESEND_API_KEY is not configured');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || 'GlobalPath Education <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      text,
+      html,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(data.message || 'Failed to send email');
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  return data;
+}
+
 router.get('/me', requireAdmin, (req, res) => {
   res.json({
     user: req.currentUser,
@@ -425,6 +590,86 @@ router.delete('/programs/:id', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to delete program' });
+  }
+});
+
+router.post('/program-promotions/send', requireAdmin, async (req, res) => {
+  try {
+    const programId = Number.parseInt(req.body.programId, 10);
+    const studentId = Number.parseInt(req.body.studentId, 10);
+    const matchScore = req.body.matchScore ? Number.parseInt(req.body.matchScore, 10) : null;
+    const matchReasons = Array.isArray(req.body.matchReasons)
+      ? req.body.matchReasons.map((reason) => String(reason).trim()).filter(Boolean)
+      : [];
+
+    if (!programId || !studentId) {
+      return res.status(400).json({ message: 'programId and studentId are required' });
+    }
+
+    const [program, student] = await Promise.all([
+      req.prisma.program.findUnique({ where: { id: programId } }),
+      req.prisma.user.findFirst({ where: { id: studentId, role: 'student' } }),
+    ]);
+
+    if (!program) return res.status(404).json({ message: 'Program not found' });
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const email = programPromotionEmail(student, program);
+    const { subject, text: message, html } = email;
+
+    try {
+      const sent = await sendResendEmail({
+        to: student.email,
+        subject,
+        text: message,
+        html,
+      });
+
+      const promotion = await req.prisma.programPromotion.create({
+        data: {
+          programId,
+          studentId,
+          adminId: req.currentUser.id,
+          email: student.email,
+          subject,
+          message,
+          status: 'sent',
+          providerMessageId: sent.id || null,
+          matchScore,
+          matchReasons: matchReasons.join(', ') || null,
+        },
+        include: {
+          program: true,
+          student: true,
+          admin: true,
+        },
+      });
+
+      return res.status(201).json(promotion);
+    } catch (sendError) {
+      const promotion = await req.prisma.programPromotion.create({
+        data: {
+          programId,
+          studentId,
+          adminId: req.currentUser.id,
+          email: student.email,
+          subject,
+          message,
+          status: 'failed',
+          matchScore,
+          matchReasons: matchReasons.join(', ') || null,
+          errorMessage: sendError.message,
+        },
+      });
+
+      return res.status(sendError.statusCode || 502).json({
+        message: sendError.message || 'Failed to send promotion email',
+        promotion,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to send promotion email' });
   }
 });
 

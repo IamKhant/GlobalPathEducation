@@ -31,6 +31,7 @@ model Program {
   bookmarks       Bookmark[]
   consultations   Consultation[]
   translations    ProgramTranslation[]
+  promotions      ProgramPromotion[]
 
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -91,6 +92,8 @@ model User {
   consultations         Consultation[]
   assignedConsultations Consultation[] @relation("AssignedConsultant")
   consultantCountries   ConsultantCountry[]
+  receivedPromotions    ProgramPromotion[] @relation("StudentProgramPromotions")
+  sentPromotions        ProgramPromotion[] @relation("AdminProgramPromotions")
 
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
@@ -150,4 +153,28 @@ model Consultation {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("consultations")
+}
+
+model ProgramPromotion {
+  id                Int      @id @default(autoincrement())
+  programId         Int      @map("program_id")
+  studentId         Int      @map("student_id")
+  adminId           Int?     @map("admin_id")
+
+  email             String
+  subject           String
+  message           String   @db.Text
+  status            String   @default("sent")
+  providerMessageId String?  @map("provider_message_id")
+  matchScore        Int?     @map("match_score")
+  matchReasons      String?  @map("match_reasons") @db.Text
+  errorMessage      String?  @map("error_message") @db.Text
+
+  program           Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  student           User     @relation("StudentProgramPromotions", fields: [studentId], references: [id], onDelete: Cascade)
+  admin             User?    @relation("AdminProgramPromotions", fields: [adminId], references: [id], onDelete: SetNull)
+
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("program_promotions")
 }
