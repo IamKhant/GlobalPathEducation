@@ -68,9 +68,57 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: ['consultant'] },
     },
     {
+      path: '/consultant/consultations',
+      name: 'consultant-consultations',
+      component: () => import('@/views/ConsultantConsultationsView.vue'),
+      meta: { requiresAuth: true, roles: ['consultant'] },
+    },
+    {
+      path: '/consultant/students',
+      name: 'consultant-students',
+      component: () => import('@/views/ConsultantStudentsView.vue'),
+      meta: { requiresAuth: true, roles: ['consultant'] },
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/programs',
+      name: 'admin-programs',
+      component: () => import('@/views/AdminProgramsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/homepage',
+      name: 'admin-homepage',
+      component: () => import('@/views/AdminHomepageView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/consultations',
+      name: 'admin-consultations',
+      component: () => import('@/views/AdminConsultationsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/students',
+      name: 'admin-students',
+      component: () => import('@/views/AdminStudentsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/consultants',
+      name: 'admin-consultants',
+      component: () => import('@/views/AdminConsultantsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
+    {
+      path: '/admin/admins',
+      name: 'admin-admins',
+      component: () => import('@/views/AdminAdminsView.vue'),
       meta: { requiresAuth: true, roles: ['admin'] },
     },
     {

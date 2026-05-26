@@ -309,6 +309,16 @@ label span {
   text-transform: uppercase;
 }
 
+.onboarding-form .form-control,
+.onboarding-form .form-select {
+  color: #0f172a;
+}
+
+.onboarding-form .form-control::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
 .form-actions {
   align-items: center;
   display: flex;

@@ -12,21 +12,68 @@
       </div>
     </section>
 
-    <div class="container py-5">
-      <div class="row justify-content-center g-4">
-        <!-- Benefits -->
-        <div class="col-lg-4">
-          <!-- Link to consultants directory -->
+    <div class="container consult-content">
+      <div class="consult-layout">
+        <aside class="consult-sidebar">
           <RouterLink to="/consultants" class="consultants-directory-link">
             <div class="directory-link-icon"><i class="bi bi-people-fill"></i></div>
             <div>
               <strong>Meet our consultants</strong>
-              <span>Browse the full team and their specialisations</span>
+              <span>Browse the team before booking</span>
             </div>
             <i class="bi bi-arrow-right directory-link-arrow"></i>
           </RouterLink>
-        </div>
-        <div class="col-lg-8">
+
+          <div class="consult-info-panel">
+            <div class="info-panel-head">
+              <span class="info-kicker">Consultation support</span>
+              <h2>Plan your next study move</h2>
+              <p>Share your goals and we will match your request with the right guidance.</p>
+            </div>
+
+            <div class="support-list">
+              <div class="support-item">
+                <i class="bi bi-search"></i>
+                <div>
+                  <strong>Program direction</strong>
+                  <span>Shortlist study options that fit your goals.</span>
+                </div>
+              </div>
+              <div class="support-item">
+                <i class="bi bi-cash-coin"></i>
+                <div>
+                  <strong>Budget clarity</strong>
+                  <span>Discuss tuition range, country fit, and next steps.</span>
+                </div>
+              </div>
+              <div class="support-item">
+                <i class="bi bi-person-check"></i>
+                <div>
+                  <strong>Consultant matching</strong>
+                  <span>Choose a consultant or let the team assign one.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="booking-summary-panel">
+            <h3>Booking summary</h3>
+            <div class="summary-row">
+              <span>Program</span>
+              <strong>{{ selectedProgram ? selectedProgram.title : 'Not sure yet' }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Consultant</span>
+              <strong>{{ selectedConsultant ? consultantName(selectedConsultant) : 'No preference' }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Date</span>
+              <strong>{{ form.preferredDate || 'Flexible' }}</strong>
+            </div>
+          </div>
+        </aside>
+
+        <main>
           <div id="consultation-form" class="form-panel">
             <!-- Success state -->
             <div v-if="success" class="text-center py-4">
@@ -166,7 +213,7 @@
               </p>
             </form>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   </div>
@@ -367,11 +414,30 @@ function reset() {
   color: #ffffff;
 }
 
+.consult-content {
+  padding-bottom: 3rem;
+  padding-top: 3rem;
+}
+
+.consult-layout {
+  align-items: start;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.65fr);
+}
+
+.consult-sidebar {
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 7rem;
+}
+
 /* Form panel */
 .form-panel {
   background: #ffffff;
   padding: 1.5rem;
-  border-radius: 16px;
+  border-radius: 10px;
   border: 1px solid #e5edf7;
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
 }
@@ -461,6 +527,100 @@ function reset() {
 .consultants-directory-link:hover .directory-link-arrow {
   transform: translateX(4px);
   color: #2563eb;
+}
+
+.consult-info-panel,
+.booking-summary-panel {
+  background: #ffffff;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+  padding: 1rem;
+}
+
+.info-kicker {
+  color: #f4a41b;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.info-panel-head h2,
+.booking-summary-panel h3 {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 850;
+  margin: 0;
+}
+
+.info-panel-head p {
+  color: #64748b;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0.45rem 0 0;
+}
+
+.support-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.support-item {
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #e5edf7;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.support-item i {
+  align-items: center;
+  background: #0f172a;
+  border-radius: 9px;
+  color: #ffffff;
+  display: inline-flex;
+  flex: 0 0 34px;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.support-item strong,
+.summary-row strong {
+  color: #0f172a;
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.support-item span,
+.summary-row span {
+  color: #64748b;
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-top: 0.15rem;
+}
+
+.booking-summary-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.summary-row {
+  border-top: 1px solid #eef2f7;
+  padding-top: 0.75rem;
+}
+
+.summary-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
 }
 
 /* Selected chip (used for both program & consultant) */
@@ -640,6 +800,16 @@ function reset() {
   .selected-chip {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .consult-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .consult-sidebar {
+    position: static;
   }
 }
 </style>

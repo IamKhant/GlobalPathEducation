@@ -2,7 +2,7 @@
   <nav :class="['navbar navbar-expand-custom gpe-navbar sticky-top', { 'is-scrolled': isScrolled }]">
     <div class="container-fluid nav-shell">
       <!-- Logo -->
-      <RouterLink class="navbar-brand d-flex align-items-center" to="/">
+      <RouterLink class="navbar-brand d-flex align-items-center" :to="logoRoute">
         <img :src="logo" alt="GlobalPath Education Logo" class="navbar-logo" />
       </RouterLink>
 
@@ -23,41 +23,91 @@
       <div id="globalPathNavbar" class="collapse navbar-collapse">
         <!-- Primary links -->
         <ul class="navbar-nav nav-center mb-3 mb-lg-0">
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/" active-class="active">
-              <i class="bi bi-house-door"></i>
-              <span>{{ settingsStore.t('nav.home') }}</span>
-            </RouterLink>
-          </li>
-
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="/programs" active-class="active">
-              <i class="bi bi-mortarboard"></i>
-              <span>{{ settingsStore.t('nav.programs') }}</span>
-            </RouterLink>
-          </li>
-
-          <li v-if="!userStore.isStaff" class="nav-item">
-            <RouterLink class="nav-link" to="/compare" active-class="active">
-              <i class="bi bi-bar-chart-steps"></i>
-              <span>
-                {{ settingsStore.t('nav.compare') }}
-                <span
-                  v-if="userStore.compareList.length"
-                  class="badge rounded-pill bg-warning text-dark ms-1"
+          <template v-if="userStore.isAdmin">
+            <li v-for="item in adminPrimaryNavLinks" :key="item.to" class="nav-item">
+              <RouterLink class="nav-link" :to="item.to" active-class="active">
+                <i :class="item.icon"></i>
+                <span>{{ item.label }}</span>
+              </RouterLink>
+            </li>
+            <li ref="adminMenuRef" class="nav-item admin-menu">
+              <button
+                type="button"
+                class="nav-link admin-menu-trigger"
+                :class="{ active: isAdminManageRoute }"
+                :aria-expanded="isAdminMenuOpen"
+                @click="toggleAdminMenu"
+              >
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span>Manage</span>
+                <i class="bi bi-chevron-down admin-menu-chevron"></i>
+              </button>
+              <div v-if="isAdminMenuOpen" class="admin-menu-panel">
+                <RouterLink
+                  v-for="item in adminSecondaryNavLinks"
+                  :key="item.to"
+                  :to="item.to"
+                  class="admin-menu-option"
+                  active-class="active"
+                  @click="closeAdminMenu"
                 >
-                  {{ userStore.compareList.length }}
-                </span>
-              </span>
-            </RouterLink>
-          </li>
+                  <i :class="item.icon"></i>
+                  <span>{{ item.label }}</span>
+                </RouterLink>
+              </div>
+            </li>
+          </template>
 
-          <li v-if="!userStore.isStaff" class="nav-item">
-            <RouterLink class="nav-link" to="/consult" active-class="active">
-              <i class="bi bi-calendar-check"></i>
-              <span>{{ settingsStore.t('nav.consultation') }}</span>
-            </RouterLink>
-          </li>
+          <template v-else-if="userStore.isConsultant">
+            <li v-for="item in consultantNavLinks" :key="item.to" class="nav-item">
+              <RouterLink
+                class="nav-link"
+                :to="item.to"
+                active-class="active"
+              >
+                <i :class="item.icon"></i>
+                <span>{{ item.label }}</span>
+              </RouterLink>
+            </li>
+          </template>
+
+          <template v-else>
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/" active-class="active">
+                <i class="bi bi-house-door"></i>
+                <span>{{ settingsStore.t('nav.home') }}</span>
+              </RouterLink>
+            </li>
+
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/programs" active-class="active">
+                <i class="bi bi-mortarboard"></i>
+                <span>{{ settingsStore.t('nav.programs') }}</span>
+              </RouterLink>
+            </li>
+
+            <li v-if="!userStore.isStaff" class="nav-item">
+              <RouterLink class="nav-link" to="/compare" active-class="active">
+                <i class="bi bi-bar-chart-steps"></i>
+                <span>
+                  {{ settingsStore.t('nav.compare') }}
+                  <span
+                    v-if="userStore.compareList.length"
+                    class="badge rounded-pill bg-warning text-dark ms-1"
+                  >
+                    {{ userStore.compareList.length }}
+                  </span>
+                </span>
+              </RouterLink>
+            </li>
+
+            <li v-if="!userStore.isStaff" class="nav-item">
+              <RouterLink class="nav-link" to="/consult" active-class="active">
+                <i class="bi bi-calendar-check"></i>
+                <span>{{ settingsStore.t('nav.consultation') }}</span>
+              </RouterLink>
+            </li>
+          </template>
         </ul>
 
         <!-- Right side -->
@@ -215,6 +265,7 @@ const userInitial = computed(() => {
 const isScrolled = ref(false)
 const isCurrencyMenuOpen = ref(false)
 const isLanguageMenuOpen = ref(false)
+const isAdminMenuOpen = ref(false)
 const customCurrency = ref('')
 const compactAt = 80
 const expandAt = 24
@@ -223,6 +274,44 @@ const dashboardRoute = computed(() => {
   if (userStore.isConsultant) return '/consultant'
   return '/dashboard'
 })
+
+const logoRoute = computed(() => {
+  if (userStore.isAdmin) return '/admin'
+  if (userStore.isConsultant) return '/consultant'
+  return '/'
+})
+
+const adminPrimaryNavLinks = [
+  { to: '/admin/programs', icon: 'bi bi-mortarboard', label: 'Programs' },
+  { to: '/admin/consultations', icon: 'bi bi-calendar-check', label: 'Consultations' },
+]
+
+const adminSecondaryNavLinks = [
+  { to: '/admin/homepage', icon: 'bi bi-house-door', label: 'Homepage' },
+  { to: '/admin/students', icon: 'bi bi-people', label: 'Students' },
+  { to: '/admin/consultants', icon: 'bi bi-person-badge', label: 'Consultants' },
+  { to: '/admin/admins', icon: 'bi bi-shield-lock', label: 'Admins' },
+]
+
+const consultantNavLinks = [
+  { to: '/consultant/consultations', icon: 'bi bi-calendar-check', label: 'Consultations' },
+  { to: '/consultant/students', icon: 'bi bi-people', label: 'Students' },
+]
+
+const isAdminManageRoute = computed(() => {
+  return adminSecondaryNavLinks.some((item) => route.path === item.to)
+})
+
+const adminMenuRef = ref(null)
+
+function closeAdminMenu() {
+  isAdminMenuOpen.value = false
+}
+
+function toggleAdminMenu() {
+  isAdminMenuOpen.value = !isAdminMenuOpen.value
+  closeSettingsMenus()
+}
 
 function closeCurrencyMenu() {
   isCurrencyMenuOpen.value = false
@@ -279,6 +368,9 @@ function handleScroll() {
 const settingsPillRef = ref(null)
 
 function handleDocumentPointerDown(event) {
+  if (isAdminMenuOpen.value && adminMenuRef.value?.contains(event.target)) return
+  if (isAdminMenuOpen.value) closeAdminMenu()
+
   if (!isCurrencyMenuOpen.value && !isLanguageMenuOpen.value) return
 
   if (settingsPillRef.value?.contains(event.target)) return
@@ -289,6 +381,7 @@ function handleDocumentPointerDown(event) {
 function handleDocumentKeydown(event) {
   if (event.key === 'Escape') {
     closeSettingsMenus()
+    closeAdminMenu()
     closeMobileMenu()
   }
 }
@@ -314,6 +407,7 @@ function handleOutsideClick(event) {
 watch(() => route.fullPath, () => {
   closeMobileMenu()
   closeSettingsMenus()
+  closeAdminMenu()
 })
 
 onMounted(() => {
@@ -497,6 +591,59 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 0.4rem;
   white-space: nowrap;
+}
+
+.admin-menu {
+  position: relative;
+}
+
+.admin-menu-trigger {
+  border: 0;
+  font: inherit;
+}
+
+.admin-menu-chevron {
+  font-size: 0.68rem;
+  margin-left: 0.1rem;
+}
+
+.admin-menu-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.55rem);
+  z-index: 1040;
+  width: 210px;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.55rem;
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+  animation: slideDown 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-menu-option {
+  align-items: center;
+  border-radius: 9px;
+  color: #0f172a;
+  display: flex;
+  font-size: 0.86rem;
+  font-weight: 800;
+  gap: 0.55rem;
+  padding: 0.58rem 0.65rem;
+  text-decoration: none;
+}
+
+.admin-menu-option i {
+  color: #2563eb;
+}
+
+.admin-menu-option:hover,
+.admin-menu-option.active,
+.admin-menu-option.router-link-active {
+  background: #fff7e6;
+  color: #0f172a;
 }
 
 /* User avatar link */
@@ -938,6 +1085,13 @@ onBeforeUnmount(() => {
     width: 22px;
     font-size: 1.05rem;
     text-align: center;
+  }
+
+  .admin-menu-panel {
+    position: static;
+    width: 100%;
+    margin-top: 0.4rem;
+    box-shadow: none;
   }
 
   .navbar-actions {

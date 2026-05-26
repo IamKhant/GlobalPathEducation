@@ -6,14 +6,15 @@
         <component :is="Component" />
       </Transition>
     </RouterView>
-    <AppFooter />
+    <AppFooter v-if="showFooter" />
     <CompareBar v-if="userStore.compareList.length > 0" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useAuth } from '@clerk/vue'
+import { useRoute } from 'vue-router'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import CompareBar from '@/components/CompareBar.vue'
@@ -22,9 +23,15 @@ import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 
 const { isSignedIn } = useAuth()
+const route = useRoute()
 const userStore = useUserStore()
 const programStore = useProgramStore()
 const settingsStore = useSettingsStore()
+
+const showFooter = computed(() => {
+  if (userStore.isStaff) return false
+  return !route.path.startsWith('/admin') && !route.path.startsWith('/consultant')
+})
 
 onMounted(async () => {
   await settingsStore.fetchUiTranslations()

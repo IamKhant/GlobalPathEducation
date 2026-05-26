@@ -3,6 +3,7 @@ const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 const allowedStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+const autoPromotionThreshold = 80;
 
 function normalizeStatus(status) {
   return String(status || '').trim().toLowerCase();
@@ -177,6 +178,81 @@ GlobalPath Education`;
   return { subject, text, html };
 }
 
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function sameText(a, b) {
+  return normalizeText(a) === normalizeText(b);
+}
+
+function studyLevelToProgramType(levelKey) {
+  return {
+    'profile.level.diploma': 'Diploma',
+    'profile.level.bachelor': 'Bachelor',
+    'profile.level.master': 'Master',
+    'profile.level.bootcamp': 'Bootcamp',
+    'profile.level.shortCourse': 'Bootcamp',
+  }[levelKey] || '';
+}
+
+function programBudgetScore(student, program) {
+  const budget = Number(student.maxBudget);
+  const tuition = Number(program.tuitionFee);
+
+  if (!budget || !tuition || !student.budgetCurrency || !program.currency) return null;
+  if (!sameText(student.budgetCurrency, program.currency)) return null;
+
+  if (tuition <= budget) return 'within';
+  if (tuition <= budget * 1.15) return 'near';
+  return 'over';
+}
+
+function hasCompletePromotionProfile(student) {
+  return Boolean(
+    student.preferredDestination &&
+      student.preferredStudyLevel &&
+      student.maxBudget &&
+      student.budgetCurrency,
+  );
+}
+
+function scoreStudentForProgram(student, program) {
+  const reasons = [];
+  let rawScore = 25;
+
+  if (sameText(student.preferredDestination, program.country)) {
+    rawScore += 30;
+    reasons.push('Destination match');
+  }
+
+  const preferredType = studyLevelToProgramType(student.preferredStudyLevel);
+  if (preferredType && sameText(preferredType, program.type)) {
+    rawScore += 28;
+    reasons.push('Study level match');
+  }
+
+  const budgetScore = programBudgetScore(student, program);
+  if (budgetScore === 'within') {
+    rawScore += 24;
+    reasons.push('Within budget');
+  } else if (budgetScore === 'near') {
+    rawScore += 12;
+    reasons.push('Near budget');
+  }
+
+  if (reasons.length === 0 && hasCompletePromotionProfile(student)) {
+    reasons.push('Profile complete');
+  }
+
+  return {
+    student,
+    rawScore,
+    score: Math.min(99, Math.max(40, rawScore)),
+    reasons: reasons.slice(0, 3),
+  };
+}
+
 async function sendResendEmail({ to, subject, text, html }) {
   if (!process.env.RESEND_API_KEY) {
     const error = new Error('RESEND_API_KEY is not configured');
@@ -208,6 +284,129 @@ async function sendResendEmail({ to, subject, text, html }) {
   }
 
   return data;
+}
+
+async function createProgramPromotion({ prisma, program, student, adminId, matchScore, matchReasons }) {
+  const { subject, text: message, html } = programPromotionEmail(student, program);
+
+  try {
+    const sent = await sendResendEmail({
+      to: student.email,
+      subject,
+      text: message,
+      html,
+    });
+
+    return prisma.programPromotion.create({
+      data: {
+        programId: program.id,
+        studentId: student.id,
+        adminId,
+        email: student.email,
+        subject,
+        message,
+        status: 'sent',
+        providerMessageId: sent.id || null,
+        matchScore,
+        matchReasons: matchReasons.join(', ') || null,
+      },
+      include: {
+        program: true,
+        student: true,
+        admin: true,
+      },
+    });
+  } catch (sendError) {
+    const promotion = await prisma.programPromotion.create({
+      data: {
+        programId: program.id,
+        studentId: student.id,
+        adminId,
+        email: student.email,
+        subject,
+        message,
+        status: 'failed',
+        matchScore,
+        matchReasons: matchReasons.join(', ') || null,
+        errorMessage: sendError.message,
+      },
+    });
+
+    sendError.promotion = promotion;
+    throw sendError;
+  }
+}
+
+async function autoEmailMatchedStudents({ prisma, program, adminId }) {
+  const students = await prisma.user.findMany({
+    where: { role: 'student' },
+  });
+
+  const matches = students
+    .map((student) => scoreStudentForProgram(student, program))
+    .filter((match) => match.score > autoPromotionThreshold && match.student.email)
+    .sort((a, b) => b.rawScore - a.rawScore);
+
+  if (!matches.length) {
+    return {
+      threshold: autoPromotionThreshold,
+      matched: 0,
+      sent: 0,
+      skipped: 0,
+      failed: 0,
+      sentStudentIds: [],
+      skippedStudentIds: [],
+      failedStudentIds: [],
+    };
+  }
+
+  const existingSent = await prisma.programPromotion.findMany({
+    where: {
+      programId: program.id,
+      studentId: { in: matches.map((match) => match.student.id) },
+      status: 'sent',
+    },
+    select: { studentId: true },
+  });
+  const alreadySentStudentIds = new Set(existingSent.map((item) => item.studentId));
+
+  const summary = {
+    threshold: autoPromotionThreshold,
+    matched: matches.length,
+    sent: 0,
+    skipped: 0,
+    failed: 0,
+    sentStudentIds: [],
+    skippedStudentIds: [],
+    failedStudentIds: [],
+  };
+
+  for (const match of matches) {
+    if (alreadySentStudentIds.has(match.student.id)) {
+      summary.skipped += 1;
+      summary.skippedStudentIds.push(match.student.id);
+      continue;
+    }
+
+    try {
+      await createProgramPromotion({
+        prisma,
+        program,
+        student: match.student,
+        adminId,
+        matchScore: match.score,
+        matchReasons: match.reasons,
+      });
+      summary.sent += 1;
+      summary.sentStudentIds.push(match.student.id);
+    } catch (error) {
+      console.error(error);
+      summary.failed += 1;
+      summary.failedStudentIds.push(match.student.id);
+    }
+  }
+
+  return summary;
 }
 
 router.get('/me', requireAdmin, (req, res) => {
@@ -553,7 +752,13 @@ router.post('/programs', requireAdmin, async (req, res) => {
     }
 
     const program = await req.prisma.program.create({ data: payload });
-    res.status(201).json(program);
+    const autoPromotions = await autoEmailMatchedStudents({
+      prisma: req.prisma,
+      program,
+      adminId: req.currentUser.id,
+    });
+
+    res.status(201).json({ ...program, autoPromotions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to create program' });
@@ -574,7 +779,13 @@ router.patch('/programs/:id', requireAdmin, async (req, res) => {
       data: payload,
     });
 
-    res.json(program);
+    const autoPromotions = await autoEmailMatchedStudents({
+      prisma: req.prisma,
+      program,
+      adminId: req.currentUser.id,
+    });
+
+    res.json({ ...program, autoPromotions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to update program' });
@@ -614,57 +825,29 @@ router.post('/program-promotions/send', requireAdmin, async (req, res) => {
     if (!program) return res.status(404).json({ message: 'Program not found' });
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    const email = programPromotionEmail(student, program);
-    const { subject, text: message, html } = email;
-
     try {
-      const sent = await sendResendEmail({
-        to: student.email,
-        subject,
-        text: message,
-        html,
+      const existingSent = await req.prisma.programPromotion.findFirst({
+        where: { programId, studentId, status: 'sent' },
       });
 
-      const promotion = await req.prisma.programPromotion.create({
-        data: {
-          programId,
-          studentId,
-          adminId: req.currentUser.id,
-          email: student.email,
-          subject,
-          message,
-          status: 'sent',
-          providerMessageId: sent.id || null,
-          matchScore,
-          matchReasons: matchReasons.join(', ') || null,
-        },
-        include: {
-          program: true,
-          student: true,
-          admin: true,
-        },
+      if (existingSent) {
+        return res.status(409).json({ message: 'This student has already been emailed for this program' });
+      }
+
+      const promotion = await createProgramPromotion({
+        prisma: req.prisma,
+        program,
+        student,
+        adminId: req.currentUser.id,
+        matchScore,
+        matchReasons,
       });
 
       return res.status(201).json(promotion);
     } catch (sendError) {
-      const promotion = await req.prisma.programPromotion.create({
-        data: {
-          programId,
-          studentId,
-          adminId: req.currentUser.id,
-          email: student.email,
-          subject,
-          message,
-          status: 'failed',
-          matchScore,
-          matchReasons: matchReasons.join(', ') || null,
-          errorMessage: sendError.message,
-        },
-      });
-
       return res.status(sendError.statusCode || 502).json({
         message: sendError.message || 'Failed to send promotion email',
-        promotion,
+        promotion: sendError.promotion,
       });
     }
   } catch (error) {
