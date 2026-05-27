@@ -3,42 +3,42 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Workspace</p>
-          <h1 class="section-heading mb-1">Manage students</h1>
-          <p class="section-subheading mb-0">Review student profiles, budgets, saved programs, and role changes.</p>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.workspace') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminStudents.title') }}</h1>
+          <p class="section-subheading mb-0">{{ settingsStore.t('adminStudents.subtitle') }}</p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
       <div class="toolbar">
         <div class="search-wrap">
           <i class="bi bi-search"></i>
-          <input v-model="search" type="text" class="form-control" placeholder="Search students by name or email..." />
+          <input v-model="search" type="text" class="form-control" :placeholder="settingsStore.t('adminStudents.searchPlaceholder')" />
         </div>
-        <span class="count-pill">{{ filteredStudents.length }} students</span>
+        <span class="count-pill">{{ settingsStore.t('adminStudents.count', { count: filteredStudents.length }) }}</span>
       </div>
 
-      <div v-if="loading" class="panel loading-panel">Loading students...</div>
+      <div v-if="loading" class="panel loading-panel">{{ settingsStore.t('adminStudents.loading') }}</div>
       <div v-else class="grid-list">
         <article v-for="student in filteredStudents" :key="student.id" class="panel user-card">
           <div>
             <h2>{{ userName(student) }}</h2>
             <p>{{ student.email }}</p>
-            <small>{{ student.consultations?.length || 0 }} consultations / {{ student.bookmarks?.length || 0 }} saved</small>
+            <small>{{ settingsStore.t('adminStudents.activity', { consultations: student.consultations?.length || 0, saved: student.bookmarks?.length || 0 }) }}</small>
             <small v-if="student.preferredDestination" class="d-block mt-1">
-              Goal: {{ student.preferredDestination }} / {{ studentLevelLabel(student.preferredStudyLevel) }}
+              {{ settingsStore.t('adminStudents.goal') }}: {{ student.preferredDestination }} / {{ studentLevelLabel(student.preferredStudyLevel) }}
             </small>
-            <small v-if="student.maxBudget" class="d-block mt-1">Budget: {{ formatBudget(student) }}</small>
+            <small v-if="student.maxBudget" class="d-block mt-1">{{ settingsStore.t('profile.budget') }}: {{ formatBudget(student) }}</small>
           </div>
           <div class="row-actions">
-            <button class="btn btn-sm btn-outline-primary" type="button" @click="changeUserRole(student, 'consultant')">Make consultant</button>
-            <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(student, 'admin')">Make admin</button>
-            <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteStudent(student.id)">Delete</button>
+            <button class="btn btn-sm btn-outline-primary" type="button" @click="changeUserRole(student, 'consultant')">{{ settingsStore.t('adminUsers.makeConsultant') }}</button>
+            <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(student, 'admin')">{{ settingsStore.t('adminUsers.makeAdmin') }}</button>
+            <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteStudent(student.id)">{{ settingsStore.t('common.delete') }}</button>
           </div>
         </article>
-        <div v-if="filteredStudents.length === 0" class="panel empty-state">No students match your search.</div>
+        <div v-if="filteredStudents.length === 0" class="panel empty-state">{{ settingsStore.t('adminStudents.empty') }}</div>
       </div>
     </div>
   </div>
@@ -78,14 +78,14 @@ async function fetchStudents() {
 async function changeUserRole(user, role) {
   const name = userName(user)
   const roleLabel = role === 'admin' ? 'admin' : 'consultant'
-  if (!confirm(`Change ${name} to ${roleLabel} role?`)) return
+  if (!confirm(settingsStore.t('adminUsers.confirmRole', { name, role: roleLabel }))) return
 
   await api.patch(`/api/admin/users/${user.id}/role`, { role })
   await fetchStudents()
 }
 
 async function deleteStudent(id) {
-  if (!confirm('Delete this student from the database?')) return
+  if (!confirm(settingsStore.t('adminStudents.confirmDelete'))) return
   await api.delete(`/api/admin/students/${id}`)
   students.value = students.value.filter((student) => student.id !== id)
 }
@@ -95,7 +95,7 @@ function userName(user) {
 }
 
 function studentLevelLabel(levelKey) {
-  return levelKey ? settingsStore.t(levelKey) : 'No level'
+  return levelKey ? settingsStore.t(levelKey) : settingsStore.t('adminPrograms.promotion.noLevel')
 }
 
 function formatBudget(user) {

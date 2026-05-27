@@ -14,21 +14,21 @@
       <div class="demo-credentials">
         <div class="demo-credentials-head">
           <i class="bi bi-key"></i>
-          <span>Demo login credentials</span>
+          <span>{{ settingsStore.t('auth.demoCredentials') }}</span>
         </div>
         <div class="demo-credentials-list">
           <div class="demo-credential-row">
-            <strong>Admin</strong>
+            <strong>{{ settingsStore.t('auth.demoAdmin') }}</strong>
             <code>admin@globalpath.com</code>
             <code>iamadmin</code>
           </div>
           <div class="demo-credential-row">
-            <strong>Consultant</strong>
+            <strong>{{ settingsStore.t('auth.demoConsultant') }}</strong>
             <code>khantzinkoaustralia@gmail.com</code>
             <code>iamconsultant</code>
           </div>
           <div class="demo-credential-row">
-            <strong>Student</strong>
+            <strong>{{ settingsStore.t('auth.demoStudent') }}</strong>
             <code>studentthree@gmail.com</code>
             <code>iamstudent</code>
           </div>
@@ -40,6 +40,9 @@
 
 <script setup>
 import { SignIn } from '@clerk/vue'
+import { useSettingsStore } from '@/stores/settings'
+
+const settingsStore = useSettingsStore()
 </script>
 
 <style scoped>

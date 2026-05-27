@@ -39,7 +39,7 @@
                 @click="toggleAdminMenu"
               >
                 <i class="bi bi-grid-3x3-gap"></i>
-                <span>Manage</span>
+                <span>{{ settingsStore.t('nav.manage') }}</span>
                 <i class="bi bi-chevron-down admin-menu-chevron"></i>
               </button>
               <div v-if="isAdminMenuOpen" class="admin-menu-panel">

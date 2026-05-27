@@ -4,7 +4,7 @@
     <div class="card-banner" :style="{ background: countryGradient }">
       <div class="card-banner-flag">{{ countryFlag }}</div>
       <span :class="['badge-type', badgeClass]">
-        {{ program.type }}
+        {{ programTypeLabel }}
       </span>
       <div class="card-actions" @click.stop>
         <button
@@ -45,7 +45,7 @@
         <div class="card-institution">{{ program.institution }}</div>
       </div>
 
-      <h6 class="card-title mb-1">{{ program.title }}</h6>
+      <h6 class="card-title mb-1">{{ displayTitle }}</h6>
 
       <div class="card-location mb-3">
         <i class="bi bi-geo-alt-fill me-1" style="font-size: 0.7rem"></i>
@@ -73,8 +73,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAuth } from '@clerk/vue'
+import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { getCountryFlag } from '@/utils/countryFlags'
@@ -82,15 +83,28 @@ import { getCountryGradient } from '@/utils/countryStyles'
 
 const props = defineProps({ program: { type: Object, required: true } })
 const { isSignedIn } = useAuth()
+const programStore = useProgramStore()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
+const activeTranslation = ref(null)
 
 const isInCompare = computed(() => userStore.compareList.some((p) => p.id === props.program.id))
 
-onMounted(() => settingsStore.fetchRate(props.program.currency))
+onMounted(() => {
+  settingsStore.fetchRate(props.program.currency)
+  loadProgramTranslation()
+})
 watch(
   () => settingsStore.selectedCurrency,
   () => settingsStore.fetchRate(props.program.currency),
+)
+watch(
+  () => settingsStore.selectedLanguage,
+  () => loadProgramTranslation(),
+)
+watch(
+  () => props.program.id,
+  () => loadProgramTranslation(),
 )
 
 function toggleCompare() {
@@ -117,6 +131,19 @@ function adjustColor(hex, amount) {
   return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`
 }
 const countryFlag = computed(() => getCountryFlag(props.program.country))
+const displayTitle = computed(() => activeTranslation.value?.title || props.program.title)
+const displaySpecialization = computed(
+  () => activeTranslation.value?.specialization || props.program.specialization || '',
+)
+const programTypeLabel = computed(
+  () =>
+    ({
+      Bachelor: settingsStore.t('programs.filter.bachelor'),
+      Diploma: settingsStore.t('programs.filter.diploma'),
+      Master: settingsStore.t('programs.filter.master'),
+      Bootcamp: settingsStore.t('programs.filter.bootcamp'),
+    })[props.program.type] || props.program.type,
+)
 const badgeClass = computed(
   () =>
     ({
@@ -128,7 +155,7 @@ const badgeClass = computed(
 )
 const allTags = computed(
   () =>
-    props.program.specialization
+    displaySpecialization.value
       ?.split(',')
       .map((t) => t.trim())
       .filter(Boolean) || [],
@@ -146,6 +173,22 @@ const feeBasisLabel = computed(
       per_term: settingsStore.t('programCard.feeTerm'),
     })[props.program.feeBasis] || '',
 )
+
+async function loadProgramTranslation() {
+  const language = settingsStore.selectedLanguage
+
+  if (language === 'EN') {
+    activeTranslation.value = null
+    return
+  }
+
+  try {
+    activeTranslation.value = await programStore.ensureProgramTranslation(props.program.id, language)
+  } catch (error) {
+    console.error(error)
+    activeTranslation.value = null
+  }
+}
 </script>
 
 <style scoped>

@@ -117,27 +117,27 @@
                   </select>
                 </div>
                 <div v-if="userStore.isConsultant" class="col-12">
-                  <label class="form-label">Public consultant bio</label>
+                  <label class="form-label">{{ settingsStore.t('profile.consultantBio') }}</label>
                   <textarea
                     v-model.trim="profileForm.consultantBio"
                     class="form-control"
                     rows="4"
                     maxlength="420"
-                    placeholder="Write a short introduction students will see before booking with you."
+                    :placeholder="settingsStore.t('profile.consultantBioPlaceholder')"
                   ></textarea>
                   <div class="form-hint">
-                    {{ consultantBioRemaining }} characters remaining
+                    {{ settingsStore.t('profile.charactersRemaining', { count: consultantBioRemaining }) }}
                   </div>
                 </div>
               </div>
 
               <div v-if="!isStudentProfile" class="staff-profile-note">
                 <div>
-                  <span>Role</span>
+                  <span>{{ settingsStore.t('profile.role') }}</span>
                   <strong>{{ displayRole }}</strong>
                 </div>
                 <div v-if="userStore.isConsultant">
-                  <span>Assigned areas</span>
+                  <span>{{ settingsStore.t('profile.assignedAreas') }}</span>
                   <strong>{{ assignedAreasText }}</strong>
                 </div>
               </div>
@@ -272,19 +272,19 @@ const dashboardRoute = computed(() => {
 })
 const profilePanelTitle = computed(() => {
   if (isStudentProfile.value) return settingsStore.t('profile.personalDetails')
-  return `${displayRole.value} profile`
+  return settingsStore.t('profile.staffTitle', { role: displayRole.value })
 })
 const profilePanelSubtitle = computed(() => {
   if (isStudentProfile.value) return settingsStore.t('profile.personalSubtitle')
-  if (userStore.isConsultant) return 'Keep your consultant contact details current for student support.'
-  return 'Manage your admin account details. Security settings remain controlled by Clerk.'
+  if (userStore.isConsultant) return settingsStore.t('profile.consultantSubtitle')
+  return settingsStore.t('profile.adminSubtitle')
 })
 const staffProfileNote = computed(() => {
-  if (userStore.isConsultant) return 'Assigned countries and regions are managed by an admin.'
-  return 'Admin operational permissions are managed from the database role.'
+  if (userStore.isConsultant) return settingsStore.t('profile.consultantNote')
+  return settingsStore.t('profile.adminNote')
 })
 const assignedAreasText = computed(() => {
-  return assignedAreas.value.length ? assignedAreas.value.join(', ') : 'Not assigned yet'
+  return assignedAreas.value.length ? assignedAreas.value.join(', ') : settingsStore.t('profile.notAssigned')
 })
 const consultantBioRemaining = computed(() => {
   return 420 - (profileForm.value.consultantBio?.length || 0)
@@ -327,11 +327,11 @@ const profileCompletion = computed(() => {
 const profileSummary = computed(() => {
   if (!isStudentProfile.value) {
     return [
-      { label: 'Role', value: displayRole.value },
+      { label: settingsStore.t('profile.role'), value: displayRole.value },
       { label: settingsStore.t('profile.email'), value: profileEmail.value },
       { label: settingsStore.t('profile.phone'), value: profileForm.value.phone },
-      ...(userStore.isConsultant ? [{ label: 'Assigned areas', value: assignedAreasText.value }] : []),
-      ...(userStore.isConsultant ? [{ label: 'Public bio', value: profileForm.value.consultantBio ? 'Published' : 'Not added' }] : []),
+      ...(userStore.isConsultant ? [{ label: settingsStore.t('profile.assignedAreas'), value: assignedAreasText.value }] : []),
+      ...(userStore.isConsultant ? [{ label: settingsStore.t('profile.consultantBio'), value: profileForm.value.consultantBio ? settingsStore.t('profile.published') : settingsStore.t('profile.notAdded') }] : []),
     ].filter((item) => item.value)
   }
 

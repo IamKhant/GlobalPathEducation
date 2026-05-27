@@ -3,12 +3,12 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Workspace</p>
-          <h1 class="section-heading mb-1">Homepage editor</h1>
-          <p class="section-subheading mb-0">Update public homepage copy section by section.</p>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.workspace') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminHomepage.title') }}</h1>
+          <p class="section-subheading mb-0">{{ settingsStore.t('adminHomepage.subtitle') }}</p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
@@ -26,7 +26,7 @@
               <p>{{ section.note }}</p>
             </div>
             <button type="button" class="btn btn-sm btn-outline-primary" @click="openEditor(section)">
-              <i class="bi bi-pencil-square me-1"></i>Edit
+              <i class="bi bi-pencil-square me-1"></i>{{ settingsStore.t('common.edit') }}
             </button>
           </article>
         </div>
@@ -34,8 +34,8 @@
         <aside class="panel editor-panel">
           <div class="panel-heading">
             <div>
-              <h2>{{ currentSection?.title || 'Select a section' }}</h2>
-              <p>{{ currentSection ? 'Update these fields and save to apply changes.' : 'Choose a homepage section to edit.' }}</p>
+              <h2>{{ currentSection?.title || settingsStore.t('adminHomepage.selectSection') }}</h2>
+              <p>{{ currentSection ? settingsStore.t('adminHomepage.editorReady') : settingsStore.t('adminHomepage.editorEmpty') }}</p>
             </div>
           </div>
 
@@ -46,9 +46,9 @@
               <input v-else v-model="draft[field.key]" class="form-control" type="text" />
             </label>
             <div class="form-actions">
-              <button type="button" class="btn btn-outline-secondary" @click="closeEditor">Cancel</button>
+              <button type="button" class="btn btn-outline-secondary" @click="closeEditor">{{ settingsStore.t('common.cancel') }}</button>
               <button type="submit" class="btn btn-gpe-primary" :disabled="saving">
-                {{ saving ? 'Saving...' : 'Save section' }}
+                {{ saving ? settingsStore.t('common.saving') : settingsStore.t('adminHomepage.saveSection') }}
               </button>
             </div>
           </form>
@@ -72,91 +72,91 @@ const draft = ref({})
 const homepageSections = [
   {
     key: 'hero',
-    eyebrow: 'Hero',
-    title: 'Hero section',
-    note: 'Main first-screen message, search bar copy, and action buttons.',
+    eyebrow: settingsStore.t('adminHomepage.section.hero.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.hero.title'),
+    note: settingsStore.t('adminHomepage.section.hero.note'),
     fields: [
-      { key: 'home.hero.badge', label: 'Badge' },
-      { key: 'home.hero.title', label: 'Title', type: 'textarea', rows: 2 },
-      { key: 'home.hero.subtitle', label: 'Subtitle', type: 'textarea', rows: 4 },
-      { key: 'home.hero.searchPlaceholder', label: 'Search placeholder' },
-      { key: 'home.hero.searchButton', label: 'Search button' },
-      { key: 'home.hero.explorePrograms', label: 'Primary button' },
-      { key: 'home.hero.bookConsultation', label: 'Secondary button' },
+      { key: 'home.hero.badge', label: settingsStore.t('adminHomepage.field.badge') },
+      { key: 'home.hero.title', label: settingsStore.t('adminHomepage.field.title'), type: 'textarea', rows: 2 },
+      { key: 'home.hero.subtitle', label: settingsStore.t('adminHomepage.field.subtitle'), type: 'textarea', rows: 4 },
+      { key: 'home.hero.searchPlaceholder', label: settingsStore.t('adminHomepage.field.searchPlaceholder') },
+      { key: 'home.hero.searchButton', label: settingsStore.t('adminHomepage.field.searchButton') },
+      { key: 'home.hero.explorePrograms', label: settingsStore.t('adminHomepage.field.primaryButton') },
+      { key: 'home.hero.bookConsultation', label: settingsStore.t('adminHomepage.field.secondaryButton') },
     ],
   },
   {
     key: 'destinations',
-    eyebrow: 'Destinations',
-    title: 'Destination slideshow',
-    note: 'Intro copy for the destination carousel and country links.',
+    eyebrow: settingsStore.t('adminHomepage.section.destinations.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.destinations.title'),
+    note: settingsStore.t('adminHomepage.section.destinations.note'),
     fields: [
-      { key: 'home.destinations.kicker', label: 'Kicker' },
-      { key: 'home.destinations.title', label: 'Title', type: 'textarea', rows: 2 },
-      { key: 'home.destinations.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
-      { key: 'home.destinations.label', label: 'Destination label' },
-      { key: 'home.destinations.viewPrograms', label: 'View programs link' },
+      { key: 'home.destinations.kicker', label: settingsStore.t('adminHomepage.field.kicker') },
+      { key: 'home.destinations.title', label: settingsStore.t('adminHomepage.field.title'), type: 'textarea', rows: 2 },
+      { key: 'home.destinations.subtitle', label: settingsStore.t('adminHomepage.field.subtitle'), type: 'textarea', rows: 3 },
+      { key: 'home.destinations.label', label: settingsStore.t('adminHomepage.field.destinationLabel') },
+      { key: 'home.destinations.viewPrograms', label: settingsStore.t('adminHomepage.field.viewProgramsLink') },
     ],
   },
   {
     key: 'featured',
-    eyebrow: 'Featured',
-    title: 'Featured programs',
-    note: 'Headline and support copy for featured program cards.',
+    eyebrow: settingsStore.t('adminHomepage.section.featured.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.featured.title'),
+    note: settingsStore.t('adminHomepage.section.featured.note'),
     fields: [
-      { key: 'home.featured.kicker', label: 'Kicker' },
-      { key: 'home.featured.title', label: 'Title' },
-      { key: 'home.featured.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
-      { key: 'home.featured.viewAll', label: 'View all link' },
+      { key: 'home.featured.kicker', label: settingsStore.t('adminHomepage.field.kicker') },
+      { key: 'home.featured.title', label: settingsStore.t('adminHomepage.field.title') },
+      { key: 'home.featured.subtitle', label: settingsStore.t('adminHomepage.field.subtitle'), type: 'textarea', rows: 3 },
+      { key: 'home.featured.viewAll', label: settingsStore.t('adminHomepage.field.viewAllLink') },
     ],
   },
   {
     key: 'process',
-    eyebrow: 'Process',
-    title: 'How it works',
-    note: 'Section heading and step descriptions.',
+    eyebrow: settingsStore.t('adminHomepage.section.process.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.process.title'),
+    note: settingsStore.t('adminHomepage.section.process.note'),
     fields: [
-      { key: 'home.process.kicker', label: 'Kicker' },
-      { key: 'home.process.title', label: 'Title' },
-      { key: 'home.process.subtitle', label: 'Subtitle', type: 'textarea', rows: 3 },
-      { key: 'home.step.explore.title', label: 'Step 1 title' },
-      { key: 'home.step.explore.text', label: 'Step 1 text', type: 'textarea', rows: 2 },
-      { key: 'home.step.compare.title', label: 'Step 2 title' },
-      { key: 'home.step.compare.text', label: 'Step 2 text', type: 'textarea', rows: 2 },
-      { key: 'home.step.consult.title', label: 'Step 3 title' },
-      { key: 'home.step.consult.text', label: 'Step 3 text', type: 'textarea', rows: 2 },
+      { key: 'home.process.kicker', label: settingsStore.t('adminHomepage.field.kicker') },
+      { key: 'home.process.title', label: settingsStore.t('adminHomepage.field.title') },
+      { key: 'home.process.subtitle', label: settingsStore.t('adminHomepage.field.subtitle'), type: 'textarea', rows: 3 },
+      { key: 'home.step.explore.title', label: settingsStore.t('adminHomepage.field.step1Title') },
+      { key: 'home.step.explore.text', label: settingsStore.t('adminHomepage.field.step1Text'), type: 'textarea', rows: 2 },
+      { key: 'home.step.compare.title', label: settingsStore.t('adminHomepage.field.step2Title') },
+      { key: 'home.step.compare.text', label: settingsStore.t('adminHomepage.field.step2Text'), type: 'textarea', rows: 2 },
+      { key: 'home.step.consult.title', label: settingsStore.t('adminHomepage.field.step3Title') },
+      { key: 'home.step.consult.text', label: settingsStore.t('adminHomepage.field.step3Text'), type: 'textarea', rows: 2 },
     ],
   },
   {
     key: 'why',
-    eyebrow: 'Why choose us',
-    title: 'Trust-building section',
-    note: 'Main explanation plus benefit cards.',
+    eyebrow: settingsStore.t('adminHomepage.section.why.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.why.title'),
+    note: settingsStore.t('adminHomepage.section.why.note'),
     fields: [
-      { key: 'home.why.kicker', label: 'Kicker' },
-      { key: 'home.why.title', label: 'Title', type: 'textarea', rows: 2 },
-      { key: 'home.why.text', label: 'Body text', type: 'textarea', rows: 4 },
-      { key: 'home.why.cta', label: 'Button text' },
-      { key: 'home.benefit.destinations.title', label: 'Benefit 1 title' },
-      { key: 'home.benefit.destinations.text', label: 'Benefit 1 text', type: 'textarea', rows: 2 },
-      { key: 'home.benefit.save.title', label: 'Benefit 2 title' },
-      { key: 'home.benefit.save.text', label: 'Benefit 2 text', type: 'textarea', rows: 2 },
-      { key: 'home.benefit.compare.title', label: 'Benefit 3 title' },
-      { key: 'home.benefit.compare.text', label: 'Benefit 3 text', type: 'textarea', rows: 2 },
-      { key: 'home.benefit.consult.title', label: 'Benefit 4 title' },
-      { key: 'home.benefit.consult.text', label: 'Benefit 4 text', type: 'textarea', rows: 2 },
+      { key: 'home.why.kicker', label: settingsStore.t('adminHomepage.field.kicker') },
+      { key: 'home.why.title', label: settingsStore.t('adminHomepage.field.title'), type: 'textarea', rows: 2 },
+      { key: 'home.why.text', label: settingsStore.t('adminHomepage.field.bodyText'), type: 'textarea', rows: 4 },
+      { key: 'home.why.cta', label: settingsStore.t('adminHomepage.field.buttonText') },
+      { key: 'home.benefit.destinations.title', label: settingsStore.t('adminHomepage.field.benefit1Title') },
+      { key: 'home.benefit.destinations.text', label: settingsStore.t('adminHomepage.field.benefit1Text'), type: 'textarea', rows: 2 },
+      { key: 'home.benefit.save.title', label: settingsStore.t('adminHomepage.field.benefit2Title') },
+      { key: 'home.benefit.save.text', label: settingsStore.t('adminHomepage.field.benefit2Text'), type: 'textarea', rows: 2 },
+      { key: 'home.benefit.compare.title', label: settingsStore.t('adminHomepage.field.benefit3Title') },
+      { key: 'home.benefit.compare.text', label: settingsStore.t('adminHomepage.field.benefit3Text'), type: 'textarea', rows: 2 },
+      { key: 'home.benefit.consult.title', label: settingsStore.t('adminHomepage.field.benefit4Title') },
+      { key: 'home.benefit.consult.text', label: settingsStore.t('adminHomepage.field.benefit4Text'), type: 'textarea', rows: 2 },
     ],
   },
   {
     key: 'cta',
-    eyebrow: 'Final call-to-action',
-    title: 'Closing banner',
-    note: 'Last conversion section before the footer.',
+    eyebrow: settingsStore.t('adminHomepage.section.cta.eyebrow'),
+    title: settingsStore.t('adminHomepage.section.cta.title'),
+    note: settingsStore.t('adminHomepage.section.cta.note'),
     fields: [
-      { key: 'home.cta.kicker', label: 'Kicker' },
-      { key: 'home.cta.title', label: 'Title', type: 'textarea', rows: 2 },
-      { key: 'home.cta.text', label: 'Body text', type: 'textarea', rows: 3 },
-      { key: 'home.cta.button', label: 'Button text' },
+      { key: 'home.cta.kicker', label: settingsStore.t('adminHomepage.field.kicker') },
+      { key: 'home.cta.title', label: settingsStore.t('adminHomepage.field.title'), type: 'textarea', rows: 2 },
+      { key: 'home.cta.text', label: settingsStore.t('adminHomepage.field.bodyText'), type: 'textarea', rows: 3 },
+      { key: 'home.cta.button', label: settingsStore.t('adminHomepage.field.buttonText') },
     ],
   },
 ]

@@ -3,38 +3,38 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Workspace</p>
-          <h1 class="section-heading mb-1">Manage admin access</h1>
-          <p class="section-subheading mb-0">Review admin accounts and adjust trusted staff permissions.</p>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.workspace') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminAdmins.title') }}</h1>
+          <p class="section-subheading mb-0">{{ settingsStore.t('adminAdmins.subtitle') }}</p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
       <div class="toolbar">
         <div class="search-wrap">
           <i class="bi bi-search"></i>
-          <input v-model="search" type="text" class="form-control" placeholder="Search admins by name or email..." />
+          <input v-model="search" type="text" class="form-control" :placeholder="settingsStore.t('adminAdmins.searchPlaceholder')" />
         </div>
-        <span class="count-pill">{{ filteredAdmins.length }} admins</span>
+        <span class="count-pill">{{ settingsStore.t('adminAdmins.count', { count: filteredAdmins.length }) }}</span>
       </div>
 
-      <div v-if="loading" class="panel loading-panel">Loading admin accounts...</div>
+      <div v-if="loading" class="panel loading-panel">{{ settingsStore.t('adminAdmins.loading') }}</div>
       <div v-else class="grid-list">
         <article v-for="admin in filteredAdmins" :key="admin.id" class="panel user-card">
           <div>
             <div class="staff-head">
               <span class="role-badge">admin</span>
-              <span v-if="admin.id === currentAdminId" class="self-badge">Current session</span>
+              <span v-if="admin.id === currentAdminId" class="self-badge">{{ settingsStore.t('adminAdmins.currentSession') }}</span>
             </div>
             <h2>{{ userName(admin) }}</h2>
             <p>{{ admin.email }}</p>
-            <small>{{ admin.consultations?.length || 0 }} student consultations / {{ admin.assignedConsultations?.length || 0 }} assigned requests</small>
+            <small>{{ settingsStore.t('adminAdmins.activity', { consultations: admin.consultations?.length || 0, assigned: admin.assignedConsultations?.length || 0 }) }}</small>
           </div>
           <div class="row-actions">
-            <button class="btn btn-sm btn-outline-primary" type="button" :disabled="admin.id === currentAdminId" @click="changeUserRole(admin, 'consultant')">Make consultant</button>
-            <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="admin.id === currentAdminId" @click="changeUserRole(admin, 'student')">Make student</button>
+            <button class="btn btn-sm btn-outline-primary" type="button" :disabled="admin.id === currentAdminId" @click="changeUserRole(admin, 'consultant')">{{ settingsStore.t('adminUsers.makeConsultant') }}</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="admin.id === currentAdminId" @click="changeUserRole(admin, 'student')">{{ settingsStore.t('adminUsers.makeStudent') }}</button>
           </div>
         </article>
       </div>
@@ -45,8 +45,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useSettingsStore } from '@/stores/settings'
 import api from '@/api'
 
+const settingsStore = useSettingsStore()
 const loading = ref(true)
 const admins = ref([])
 const currentAdminId = ref(null)
@@ -79,7 +81,7 @@ async function fetchAdmins() {
 
 async function changeUserRole(user, role) {
   const name = userName(user)
-  if (!confirm(`Change ${name} to ${role} role?`)) return
+  if (!confirm(settingsStore.t('adminUsers.confirmRole', { name, role }))) return
 
   await api.patch(`/api/admin/users/${user.id}/role`, { role })
   await fetchAdmins()

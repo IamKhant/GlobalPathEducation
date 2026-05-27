@@ -1,5 +1,4 @@
 const express = require('express');
-const { requireApiAuth } = require('../middleware/auth');
 const { normalizeTargetLang, translateTexts } = require('../services/deepl');
 
 const router = express.Router();
@@ -157,7 +156,7 @@ router.get('/meta', async (req, res) => {
 });
 
 // POST /api/programs/:id/translation
-router.post('/:id/translation', requireApiAuth, async (req, res) => {
+router.post('/:id/translation', async (req, res) => {
   try {
     const id = Number.parseInt(req.params.id, 10);
     const targetLang = normalizeTargetLang(req.body.targetLang || req.body.locale);
@@ -192,8 +191,8 @@ router.post('/:id/translation', requireApiAuth, async (req, res) => {
       return res.json(program.translations[0]);
     }
 
-    const [title, specialization, description] = await translateTexts(
-      [program.title, program.specialization, program.description],
+    const [title, specialization, description, notes] = await translateTexts(
+      [program.title, program.specialization, program.description, program.notes],
       targetLang,
     );
 
@@ -208,6 +207,7 @@ router.post('/:id/translation', requireApiAuth, async (req, res) => {
         title,
         specialization,
         description,
+        notes,
       },
       create: {
         programId: program.id,
@@ -215,6 +215,7 @@ router.post('/:id/translation', requireApiAuth, async (req, res) => {
         title,
         specialization,
         description,
+        notes,
       },
     });
 

@@ -99,7 +99,7 @@
               <h5 class="detail-card-title">
                 <i class="bi bi-sticky me-2 text-warning"></i>{{ settingsStore.t('programDetail.notes') }}
               </h5>
-              <p class="text-muted mb-0 small lh-lg">{{ program.notes }}</p>
+              <p class="text-muted mb-0 small lh-lg">{{ displayNotes }}</p>
             </div>
           </div>
 
@@ -269,6 +269,7 @@ const displayDescription = computed(
 const displaySpecialization = computed(
   () => activeTranslation.value?.specialization || program.value?.specialization || '',
 )
+const displayNotes = computed(() => activeTranslation.value?.notes || program.value?.notes || '')
 const allTags = computed(
   () =>
     displaySpecialization.value
@@ -320,19 +321,7 @@ async function loadProgramTranslation() {
 
   try {
     translationLoading.value = true
-    const cachedTranslation = await programStore.fetchProgramTranslation(program.value.id, language)
-
-    if (cachedTranslation) {
-      activeTranslation.value = cachedTranslation
-      return
-    }
-
-    if (!isSignedIn.value) {
-      activeTranslation.value = null
-      return
-    }
-
-    activeTranslation.value = await programStore.translateProgram(program.value.id, language)
+    activeTranslation.value = await programStore.ensureProgramTranslation(program.value.id, language)
   } catch (error) {
     console.error(error)
     activeTranslation.value = null

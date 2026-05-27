@@ -3,21 +3,21 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Workspace</p>
-          <h1 class="section-heading mb-1">Manage consultations</h1>
-          <p class="section-subheading mb-0">Review requests, update statuses, and assign consultants.</p>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.workspace') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminConsultations.title') }}</h1>
+          <p class="section-subheading mb-0">{{ settingsStore.t('adminConsultations.subtitle') }}</p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
       <section class="panel">
         <div class="panel-heading">
-          <h2>All consultations</h2>
+          <h2>{{ settingsStore.t('adminConsultations.all') }}</h2>
           <div class="search-wrap">
             <i class="bi bi-search"></i>
-            <input v-model="search" type="text" class="form-control form-control-sm" placeholder="Search by student or program..." />
+            <input v-model="search" type="text" class="form-control form-control-sm" :placeholder="settingsStore.t('adminConsultations.searchPlaceholder')" />
           </div>
         </div>
 
@@ -30,20 +30,20 @@
             :class="[`status-tab-${tab.value}`, { active: selectedStatus === tab.value }]"
             @click="selectedStatus = tab.value"
           >
-            {{ tab.label }}
+            {{ settingsStore.t(tab.labelKey) }}
             <span>{{ statusCount(tab.value) }}</span>
           </button>
         </div>
 
-        <div v-if="loading" class="loading-panel">Loading consultations...</div>
+        <div v-if="loading" class="loading-panel">{{ settingsStore.t('adminConsultations.loading') }}</div>
         <div v-else class="table-wrap">
           <table class="table align-middle">
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Program</th>
-                <th>Status</th>
-                <th>Consultant</th>
+                <th>{{ settingsStore.t('adminConsultations.student') }}</th>
+                <th>{{ settingsStore.t('adminConsultations.program') }}</th>
+                <th>{{ settingsStore.t('adminConsultations.status') }}</th>
+                <th>{{ settingsStore.t('adminConsultations.consultant') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -52,7 +52,7 @@
                   <strong>{{ item.fullName }}</strong>
                   <small>{{ item.email }}</small>
                 </td>
-                <td>{{ item.program?.title || 'General inquiry' }}</td>
+                <td>{{ item.program?.title || settingsStore.t('consultant.consultations.generalInquiry') }}</td>
                 <td>
                   <select class="form-select form-select-sm" :value="normalizeStatus(item.status)" @change="updateConsultation(item.id, { status: $event.target.value })">
                     <option v-for="status in statuses" :key="status" :value="status">{{ statusLabel(status) }}</option>
@@ -60,7 +60,7 @@
                 </td>
                 <td>
                   <select class="form-select form-select-sm" :value="item.consultantId || ''" @change="updateConsultation(item.id, { consultantId: $event.target.value || null })">
-                    <option value="">Unassigned</option>
+                    <option value="">{{ settingsStore.t('adminConsultations.unassigned') }}</option>
                     <option v-for="consultant in consultants" :key="consultant.id" :value="consultant.id">
                       {{ userName(consultant) }}
                     </option>
@@ -69,7 +69,7 @@
               </tr>
             </tbody>
           </table>
-          <div v-if="filteredConsultations.length === 0" class="empty-state">No consultations match your filters.</div>
+          <div v-if="filteredConsultations.length === 0" class="empty-state">{{ settingsStore.t('adminConsultations.empty') }}</div>
         </div>
       </section>
     </div>
@@ -90,11 +90,11 @@ const search = ref('')
 const selectedStatus = ref('all')
 const statuses = ['pending', 'confirmed', 'completed', 'cancelled']
 const statusTabs = [
-  { value: 'all', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'all', labelKey: 'consultant.filter.all' },
+  { value: 'pending', labelKey: 'common.status.pending' },
+  { value: 'confirmed', labelKey: 'common.status.confirmed' },
+  { value: 'completed', labelKey: 'common.status.completed' },
+  { value: 'cancelled', labelKey: 'common.status.cancelled' },
 ]
 
 const filteredConsultations = computed(() => {

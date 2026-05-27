@@ -18,57 +18,57 @@
           <RouterLink to="/consultants" class="consultants-directory-link">
             <div class="directory-link-icon"><i class="bi bi-people-fill"></i></div>
             <div>
-              <strong>Meet our consultants</strong>
-              <span>Browse the team before booking</span>
+              <strong>{{ settingsStore.t('consult.meetConsultants') }}</strong>
+              <span>{{ settingsStore.t('consult.browseTeam') }}</span>
             </div>
             <i class="bi bi-arrow-right directory-link-arrow"></i>
           </RouterLink>
 
           <div class="consult-info-panel">
             <div class="info-panel-head">
-              <span class="info-kicker">Consultation support</span>
-              <h2>Plan your next study move</h2>
-              <p>Share your goals and we will match your request with the right guidance.</p>
+              <span class="info-kicker">{{ settingsStore.t('consult.supportKicker') }}</span>
+              <h2>{{ settingsStore.t('consult.supportTitle') }}</h2>
+              <p>{{ settingsStore.t('consult.supportText') }}</p>
             </div>
 
             <div class="support-list">
               <div class="support-item">
                 <i class="bi bi-search"></i>
                 <div>
-                  <strong>Program direction</strong>
-                  <span>Shortlist study options that fit your goals.</span>
+                  <strong>{{ settingsStore.t('consult.support.programTitle') }}</strong>
+                  <span>{{ settingsStore.t('consult.support.programText') }}</span>
                 </div>
               </div>
               <div class="support-item">
                 <i class="bi bi-cash-coin"></i>
                 <div>
-                  <strong>Budget clarity</strong>
-                  <span>Discuss tuition range, country fit, and next steps.</span>
+                  <strong>{{ settingsStore.t('consult.support.budgetTitle') }}</strong>
+                  <span>{{ settingsStore.t('consult.support.budgetText') }}</span>
                 </div>
               </div>
               <div class="support-item">
                 <i class="bi bi-person-check"></i>
                 <div>
-                  <strong>Consultant matching</strong>
-                  <span>Choose a consultant or let the team assign one.</span>
+                  <strong>{{ settingsStore.t('consult.support.matchTitle') }}</strong>
+                  <span>{{ settingsStore.t('consult.support.matchText') }}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="booking-summary-panel">
-            <h3>Booking summary</h3>
+            <h3>{{ settingsStore.t('consult.summaryTitle') }}</h3>
             <div class="summary-row">
-              <span>Program</span>
-              <strong>{{ selectedProgram ? selectedProgram.title : 'Not sure yet' }}</strong>
+              <span>{{ settingsStore.t('consult.summaryProgram') }}</span>
+              <strong>{{ selectedProgram ? selectedProgram.title : settingsStore.t('consult.summaryNotSure') }}</strong>
             </div>
             <div class="summary-row">
-              <span>Consultant</span>
-              <strong>{{ selectedConsultant ? consultantName(selectedConsultant) : 'No preference' }}</strong>
+              <span>{{ settingsStore.t('consult.consultant') }}</span>
+              <strong>{{ selectedConsultant ? consultantName(selectedConsultant) : settingsStore.t('consult.noPreference') }}</strong>
             </div>
             <div class="summary-row">
-              <span>Date</span>
-              <strong>{{ form.preferredDate || 'Flexible' }}</strong>
+              <span>{{ settingsStore.t('consult.date') }}</span>
+              <strong>{{ form.preferredDate || settingsStore.t('consult.flexible') }}</strong>
             </div>
           </div>
         </aside>
@@ -142,7 +142,7 @@
 
                 <!-- Consultant picker (NEW) -->
                 <div class="col-12">
-                  <label class="form-label fw-semibold small">Consultant</label>
+                  <label class="form-label fw-semibold small">{{ settingsStore.t('consult.consultant') }}</label>
                   <div v-if="selectedConsultant" class="selected-chip">
                     <div class="d-flex align-items-center gap-3">
                       <div class="chip-avatar">
@@ -150,7 +150,7 @@
                         <span v-else>{{ consultantInitials(selectedConsultant) }}</span>
                       </div>
                       <div>
-                        <span class="chip-label">Selected consultant</span>
+                        <span class="chip-label">{{ settingsStore.t('consult.selectedConsultant') }}</span>
                         <strong>{{ consultantName(selectedConsultant) }}</strong>
                         <small class="chip-meta">{{ consultantAreas(selectedConsultant) }}</small>
                       </div>
@@ -160,16 +160,16 @@
                   <div v-else class="consultant-picker">
                     <div class="position-relative">
                       <i class="bi bi-people consultant-picker-icon"></i>
-                      <input v-model="consultantSearch" type="text" class="form-control consultant-picker-input" placeholder="Search by name or region..." />
+                      <input v-model="consultantSearch" type="text" class="form-control consultant-picker-input" :placeholder="settingsStore.t('consult.consultantSearch')" />
                     </div>
-                    <div v-if="consultantsLoading" class="picker-empty">Loading consultants...</div>
+                    <div v-if="consultantsLoading" class="picker-empty">{{ settingsStore.t('consult.loadingConsultants') }}</div>
                     <div v-else-if="filteredConsultants.length === 0 && consultants.length === 0" class="picker-empty">
-                      No consultants available yet — we'll assign one for you.
+                      {{ settingsStore.t('consult.noConsultants') }}
                     </div>
                     <div v-else class="picker-option-list consultant-option-list">
                       <button type="button" class="picker-option active" @click="selectConsultant(null)">
-                        <strong>No preference</strong>
-                        <span>We'll match you with the best available consultant</span>
+                        <strong>{{ settingsStore.t('consult.noPreference') }}</strong>
+                        <span>{{ settingsStore.t('consult.bestAvailable') }}</span>
                       </button>
                       <button
                         v-for="c in filteredConsultants"
@@ -190,7 +190,7 @@
                         </div>
                       </button>
                       <div v-if="filteredConsultants.length === 0 && consultantSearch" class="picker-empty">
-                        No consultants matching "{{ consultantSearch }}"
+                        {{ settingsStore.t('consult.noConsultantMatch', { query: consultantSearch }) }}
                       </div>
                     </div>
                   </div>

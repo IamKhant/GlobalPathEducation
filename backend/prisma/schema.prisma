@@ -47,6 +47,7 @@ model ProgramTranslation {
   title          String
   specialization String? @db.Text
   description    String? @db.Text
+  notes          String? @db.Text
 
   program        Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
 

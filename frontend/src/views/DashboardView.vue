@@ -149,7 +149,7 @@
                 <input
                   v-model="bookmarkSearch"
                   type="search"
-                  :placeholder="settingsStore.t('programs.filters.search')"
+                  :placeholder="settingsStore.t('programs.filter.search')"
                 />
               </div>
             </div>
@@ -165,7 +165,7 @@
                 <RouterLink :to="`/programs/${b.program.id}`" class="btn btn-sm btn-outline-secondary">{{ settingsStore.t('common.view') }}</RouterLink>
               </div>
               <div v-if="filteredBookmarks.length === 0" class="text-center py-3 text-muted small">
-                No saved programs match your search.
+                {{ settingsStore.t('dashboard.noSavedMatch') }}
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@
                 <input
                   v-model="consultationSearch"
                   type="search"
-                  placeholder="Search consultation or program"
+                  :placeholder="settingsStore.t('dashboard.searchConsultation')"
                 />
               </div>
             </div>
@@ -220,7 +220,7 @@
                 </div>
               </div>
               <div v-if="filteredConsultations.length === 0" class="text-center py-3 text-muted small">
-                No consultations match your filters.
+                {{ settingsStore.t('dashboard.noConsultationMatch') }}
               </div>
             </div>
           </div>

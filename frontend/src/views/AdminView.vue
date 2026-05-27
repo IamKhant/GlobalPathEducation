@@ -3,47 +3,47 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Overview</p>
-          <h1 class="section-heading mb-1">GlobalPath control center</h1>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.overview.kicker') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('admin.overview.title') }}</h1>
           <p class="section-subheading mb-0">
-            A quick snapshot of platform activity, with direct links to each admin workspace.
+            {{ settingsStore.t('admin.overview.subtitle') }}
           </p>
         </div>
         <span class="role-pill">admin</span>
       </header>
 
-      <div v-if="loading" class="panel loading-panel">Loading admin overview...</div>
+      <div v-if="loading" class="panel loading-panel">{{ settingsStore.t('admin.overview.loading') }}</div>
 
       <template v-else>
         <div class="stats-grid">
           <article class="stat-card">
-            <span>Total consultations</span>
+            <span>{{ settingsStore.t('admin.stats.totalConsultations') }}</span>
             <strong>{{ dashboard.totals?.consultations || consultations.length }}</strong>
-            <small>{{ pendingConsultationsCount }} pending review</small>
+            <small>{{ settingsStore.t('admin.stats.pendingReview', { count: pendingConsultationsCount }) }}</small>
           </article>
           <article class="stat-card">
-            <span>Students</span>
+            <span>{{ settingsStore.t('admin.stats.students') }}</span>
             <strong>{{ dashboard.totals?.students || students.length }}</strong>
-            <small>{{ recentStudents.length }} added recently</small>
+            <small>{{ settingsStore.t('admin.stats.addedRecently', { count: recentStudents.length }) }}</small>
           </article>
           <article class="stat-card">
-            <span>Consultants</span>
+            <span>{{ settingsStore.t('admin.stats.consultants') }}</span>
             <strong>{{ dashboard.totals?.consultants || consultants.length }}</strong>
-            <small>{{ unassignedConsultationsCount }} requests still unassigned</small>
+            <small>{{ settingsStore.t('admin.stats.unassignedRequests', { count: unassignedConsultationsCount }) }}</small>
           </article>
           <article class="stat-card accent">
-            <span>Programs</span>
+            <span>{{ settingsStore.t('admin.stats.programs') }}</span>
             <strong>{{ dashboard.totals?.programs || programs.length }}</strong>
-            <small>{{ recentPrograms.length }} updated recently</small>
+            <small>{{ settingsStore.t('admin.stats.updatedRecently', { count: recentPrograms.length }) }}</small>
           </article>
         </div>
 
         <div class="overview-grid">
           <article class="panel">
             <div class="panel-heading">
-              <h2>Consultation pipeline</h2>
+              <h2>{{ settingsStore.t('admin.overview.pipeline') }}</h2>
               <button class="text-button" type="button" @click="router.push('/admin/consultations')">
-                Manage queue
+                {{ settingsStore.t('admin.overview.manageQueue') }}
               </button>
             </div>
             <div class="status-grid">
@@ -59,35 +59,35 @@
 
           <article class="panel">
             <div class="panel-heading">
-              <h2>Quick actions</h2>
+              <h2>{{ settingsStore.t('admin.overview.quickActions') }}</h2>
             </div>
             <div class="quick-action-grid">
               <button type="button" class="quick-action-card" @click="router.push('/admin/programs')">
                 <i class="bi bi-mortarboard"></i>
                 <div>
-                  <strong>Manage programs</strong>
-                  <small>Create, edit, target, and promote programs to matched students.</small>
+                  <strong>{{ settingsStore.t('admin.action.programs') }}</strong>
+                  <small>{{ settingsStore.t('admin.action.programsDesc') }}</small>
                 </div>
               </button>
               <button type="button" class="quick-action-card" @click="router.push('/admin/homepage')">
                 <i class="bi bi-house-door"></i>
                 <div>
-                  <strong>Edit homepage</strong>
-                  <small>Update hero copy, public sections, and translated text.</small>
+                  <strong>{{ settingsStore.t('admin.action.homepage') }}</strong>
+                  <small>{{ settingsStore.t('admin.action.homepageDesc') }}</small>
                 </div>
               </button>
               <button type="button" class="quick-action-card" @click="router.push('/admin/consultants')">
                 <i class="bi bi-person-badge"></i>
                 <div>
-                  <strong>Manage consultants</strong>
-                  <small>Assign service regions, update bios, and change roles.</small>
+                  <strong>{{ settingsStore.t('admin.action.consultants') }}</strong>
+                  <small>{{ settingsStore.t('admin.action.consultantsDesc') }}</small>
                 </div>
               </button>
               <button type="button" class="quick-action-card" @click="router.push('/admin/students')">
                 <i class="bi bi-people"></i>
                 <div>
-                  <strong>Review students</strong>
-                  <small>Check profiles, budgets, saved programs, and account activity.</small>
+                  <strong>{{ settingsStore.t('admin.action.students') }}</strong>
+                  <small>{{ settingsStore.t('admin.action.studentsDesc') }}</small>
                 </div>
               </button>
             </div>
@@ -97,23 +97,23 @@
         <div class="two-col">
           <article class="panel">
             <div class="panel-heading">
-              <h2>Recent consultations</h2>
+              <h2>{{ settingsStore.t('admin.overview.recentConsultations') }}</h2>
               <button class="text-button" type="button" @click="router.push('/admin/consultations')">
-                View all
+                {{ settingsStore.t('admin.common.viewAll') }}
               </button>
             </div>
             <div class="compact-list">
               <div v-for="item in recentConsultations" :key="item.id" class="compact-row">
                 <div>
                   <strong>{{ item.fullName }}</strong>
-                  <span>{{ item.program?.title || 'General inquiry' }}</span>
+                  <span>{{ item.program?.title || settingsStore.t('consultant.consultations.generalInquiry') }}</span>
                 </div>
                 <small>{{ item.consultant ? userName(item.consultant) : statusLabel(item.status) }}</small>
               </div>
               <div v-if="!recentConsultations.length" class="compact-row">
                 <div>
-                  <strong>No consultation requests yet</strong>
-                  <span>New student bookings will appear here.</span>
+                  <strong>{{ settingsStore.t('admin.empty.noConsultations') }}</strong>
+                  <span>{{ settingsStore.t('admin.empty.noConsultationsText') }}</span>
                 </div>
               </div>
             </div>
@@ -121,9 +121,9 @@
 
           <article class="panel">
             <div class="panel-heading">
-              <h2>Recent program updates</h2>
+              <h2>{{ settingsStore.t('admin.overview.recentPrograms') }}</h2>
               <button class="text-button" type="button" @click="router.push('/admin/programs')">
-                Manage programs
+                {{ settingsStore.t('admin.action.programs') }}
               </button>
             </div>
             <div class="compact-list">
@@ -136,8 +136,8 @@
               </div>
               <div v-if="!recentPrograms.length" class="compact-row">
                 <div>
-                  <strong>No recent program edits</strong>
-                  <span>Program updates will appear here.</span>
+                  <strong>{{ settingsStore.t('admin.empty.noProgramEdits') }}</strong>
+                  <span>{{ settingsStore.t('admin.empty.noProgramEditsText') }}</span>
                 </div>
               </div>
             </div>
@@ -147,9 +147,9 @@
         <div class="two-col">
           <article class="panel">
             <div class="panel-heading">
-              <h2>Newest students</h2>
+              <h2>{{ settingsStore.t('admin.overview.newestStudents') }}</h2>
               <button class="text-button" type="button" @click="router.push('/admin/students')">
-                View students
+                {{ settingsStore.t('admin.common.viewStudents') }}
               </button>
             </div>
             <div class="compact-list">
@@ -162,8 +162,8 @@
               </div>
               <div v-if="!recentStudents.length" class="compact-row">
                 <div>
-                  <strong>No recent student signups</strong>
-                  <span>New student accounts will appear here.</span>
+                  <strong>{{ settingsStore.t('admin.empty.noStudentSignups') }}</strong>
+                  <span>{{ settingsStore.t('admin.empty.noStudentSignupsText') }}</span>
                 </div>
               </div>
             </div>
@@ -171,9 +171,9 @@
 
           <article class="panel">
             <div class="panel-heading">
-              <h2>Team coverage</h2>
+              <h2>{{ settingsStore.t('admin.overview.teamCoverage') }}</h2>
               <button class="text-button" type="button" @click="router.push('/admin/consultants')">
-                Open team
+                {{ settingsStore.t('admin.common.openTeam') }}
               </button>
             </div>
             <div class="coverage-list">
@@ -182,16 +182,16 @@
                   <div class="coverage-avatar">{{ initials(consultant) }}</div>
                   <div>
                     <strong>{{ userName(consultant) }}</strong>
-                    <span>{{ countryText(consultant) || 'No region assigned yet' }}</span>
+                    <span>{{ countryText(consultant) || settingsStore.t('admin.empty.noRegionAssigned') }}</span>
                   </div>
                 </div>
-                <small>{{ consultant.assignedConsultations?.length || 0 }} assigned</small>
+                <small>{{ settingsStore.t('admin.stats.assigned', { count: consultant.assignedConsultations?.length || 0 }) }}</small>
               </div>
               <div v-if="!topConsultants.length" class="coverage-row">
                 <div class="coverage-user">
                   <div>
-                    <strong>No consultants yet</strong>
-                    <span>Promote a staff member to start handling consultations.</span>
+                    <strong>{{ settingsStore.t('admin.empty.noConsultants') }}</strong>
+                    <span>{{ settingsStore.t('admin.empty.noConsultantsText') }}</span>
                   </div>
                 </div>
               </div>
@@ -207,8 +207,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
+import { useSettingsStore } from '@/stores/settings'
 
 const router = useRouter()
+const settingsStore = useSettingsStore()
 const loading = ref(true)
 const dashboard = ref({})
 const consultations = ref([])
@@ -219,10 +221,10 @@ const programs = ref([])
 const overviewStatuses = computed(() => {
   const counts = dashboard.value.statusCounts || {}
   return [
-    { key: 'pending', label: 'Pending', count: counts.pending || 0 },
-    { key: 'confirmed', label: 'Confirmed', count: counts.confirmed || 0 },
-    { key: 'completed', label: 'Completed', count: counts.completed || 0 },
-    { key: 'cancelled', label: 'Cancelled', count: counts.cancelled || 0 },
+    { key: 'pending', label: settingsStore.t('common.status.pending'), count: counts.pending || 0 },
+    { key: 'confirmed', label: settingsStore.t('common.status.confirmed'), count: counts.confirmed || 0 },
+    { key: 'completed', label: settingsStore.t('common.status.completed'), count: counts.completed || 0 },
+    { key: 'cancelled', label: settingsStore.t('common.status.cancelled'), count: counts.cancelled || 0 },
   ]
 })
 

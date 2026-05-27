@@ -187,15 +187,15 @@
           <p>{{ settingsStore.t('home.featured.loading') }}</p>
         </div>
 
-        <div v-else-if="featuredPrograms.length" class="row g-4">
-          <div v-for="program in featuredPrograms" :key="program.id" class="col-md-6 col-lg-4">
+        <div v-else-if="displayFeaturedPrograms.length" class="row g-4">
+          <div v-for="program in displayFeaturedPrograms" :key="program.id" class="col-md-6 col-lg-4">
             <div class="program-card">
               <div class="d-flex justify-content-between align-items-start mb-3">
-                <span class="type-badge">{{ program.type }}</span>
+                <span class="type-badge">{{ programTypeLabel(program.type) }}</span>
                 <span class="country-text">{{ program.country }}</span>
               </div>
 
-              <h5>{{ program.title }}</h5>
+              <h5>{{ program.displayTitle }}</h5>
               <p class="institution">{{ program.institution }}</p>
 
               <div class="program-meta">
@@ -211,7 +211,7 @@
               </div>
 
               <p class="description">
-                {{ shortDescription(program.description) }}
+                {{ shortDescription(program.displayDescription) }}
               </p>
 
               <RouterLink :to="`/programs/${program.id}`" class="card-link">
@@ -296,8 +296,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 import api from '@/api'
 
@@ -313,10 +314,12 @@ import newZealandImg from '@/assets/countries/newzealand.jpg'
 import spainImg from '@/assets/countries/spain.jpg'
 
 const router = useRouter()
+const programStore = useProgramStore()
 const settingsStore = useSettingsStore()
 
 const searchQuery = ref('')
 const featuredPrograms = ref([])
+const featuredTranslations = ref({})
 const loading = ref(false)
 
 const countries = [
@@ -403,6 +406,18 @@ const benefits = [
   },
 ]
 
+const displayFeaturedPrograms = computed(() =>
+  featuredPrograms.value.map((program) => {
+    const translation = featuredTranslations.value[program.id] || {}
+
+    return {
+      ...program,
+      displayTitle: translation.title || program.title,
+      displayDescription: translation.description || program.description,
+    }
+  }),
+)
+
 function handleSearch() {
   const query = searchQuery.value.trim()
 
@@ -429,12 +444,50 @@ async function fetchFeaturedPrograms() {
     })
 
     featuredPrograms.value = data.data || []
+    await loadFeaturedTranslations()
   } catch (error) {
     console.error(error)
   } finally {
     loading.value = false
   }
 }
+
+async function loadFeaturedTranslations() {
+  const language = settingsStore.selectedLanguage
+
+  if (language === 'EN') {
+    featuredTranslations.value = {}
+    return
+  }
+
+  const entries = await Promise.all(
+    featuredPrograms.value.map(async (program) => {
+      try {
+        const translation = await programStore.ensureProgramTranslation(program.id, language)
+        return [program.id, translation]
+      } catch (error) {
+        console.error(error)
+        return [program.id, null]
+      }
+    }),
+  )
+
+  featuredTranslations.value = Object.fromEntries(entries.filter(([, translation]) => translation))
+}
+
+function programTypeLabel(type) {
+  return {
+    Bachelor: settingsStore.t('programs.filter.bachelor'),
+    Diploma: settingsStore.t('programs.filter.diploma'),
+    Master: settingsStore.t('programs.filter.master'),
+    Bootcamp: settingsStore.t('programs.filter.bootcamp'),
+  }[type] || type
+}
+
+watch(
+  () => settingsStore.selectedLanguage,
+  () => loadFeaturedTranslations(),
+)
 
 onMounted(fetchFeaturedPrograms)
 </script>

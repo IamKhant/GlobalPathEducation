@@ -52,7 +52,7 @@
         <button
           type="button"
           class="compare-bar-collapse-btn"
-          title="Minimize"
+          :title="settingsStore.t('compareBar.minimize')"
           @click="isCollapsed = true"
         >
           <i class="bi bi-chevron-down"></i>

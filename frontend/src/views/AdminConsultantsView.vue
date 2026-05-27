@@ -3,31 +3,31 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Admin Workspace</p>
-          <h1 class="section-heading mb-1">Manage consultants</h1>
-          <p class="section-subheading mb-0">Promote users, assign service regions, and update public consultant bios.</p>
+          <p class="eyebrow mb-2">{{ settingsStore.t('admin.workspace') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminConsultants.title') }}</h1>
+          <p class="section-subheading mb-0">{{ settingsStore.t('adminConsultants.subtitle') }}</p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
-      <div v-if="loading" class="panel loading-panel">Loading consultants...</div>
+      <div v-if="loading" class="panel loading-panel">{{ settingsStore.t('adminConsultants.loading') }}</div>
 
       <section v-else class="consultant-layout">
         <aside class="panel promote-panel">
           <div class="panel-heading">
             <div>
-              <h2>Create consultant profile</h2>
-              <p>Promote an existing Clerk user, then assign service areas and public bio.</p>
+              <h2>{{ settingsStore.t('adminConsultants.createTitle') }}</h2>
+              <p>{{ settingsStore.t('adminConsultants.createSubtitle') }}</p>
             </div>
           </div>
 
           <label>
-            <span>User account</span>
+            <span>{{ settingsStore.t('adminConsultants.userAccount') }}</span>
             <div class="search-wrap">
               <i class="bi bi-search"></i>
-              <input v-model="promoteSearch" type="text" class="form-control" placeholder="Search by name or email..." />
+              <input v-model="promoteSearch" type="text" class="form-control" :placeholder="settingsStore.t('adminConsultants.promoteSearchPlaceholder')" />
             </div>
             <div class="promote-user-list">
               <button
@@ -45,21 +45,21 @@
                 <i v-if="promoteUserId === student.id" class="bi bi-check-circle-fill text-success"></i>
               </button>
               <div v-if="filteredStudents.length === 0" class="empty-state">
-                {{ promoteSearch ? 'No matching users' : 'No students available' }}
+                {{ promoteSearch ? settingsStore.t('adminConsultants.noMatchingUsers') : settingsStore.t('adminConsultants.noStudentsAvailable') }}
               </div>
             </div>
           </label>
 
           <button class="btn btn-gpe-primary w-100" type="button" :disabled="!promoteUserId" @click="promoteConsultant">
-            Promote to consultant
+            {{ settingsStore.t('adminConsultants.promoteButton') }}
           </button>
-          <div class="note">New consultants should sign up with Clerk first so login security remains handled by Clerk.</div>
+          <div class="note">{{ settingsStore.t('adminConsultants.clerkNote') }}</div>
         </aside>
 
         <div>
           <div class="search-wrap mb-3">
             <i class="bi bi-search"></i>
-            <input v-model="consultantSearch" type="text" class="form-control" placeholder="Search consultants by name, email, or region..." />
+            <input v-model="consultantSearch" type="text" class="form-control" :placeholder="settingsStore.t('adminConsultants.searchPlaceholder')" />
           </div>
 
           <div class="consultant-list">
@@ -77,7 +77,7 @@
 
               <div class="editor-grid">
                 <label>
-                  <span>Countries / regions</span>
+                  <span>{{ settingsStore.t('adminConsultants.countries') }}</span>
                   <div class="tag-input-wrap">
                     <div class="tag-chips">
                       <span v-for="area in assignedCountryList(consultant)" :key="area" class="tag-chip">
@@ -85,22 +85,22 @@
                         <button type="button" @click="removeCountry(consultant, area)">&times;</button>
                       </span>
                     </div>
-                    <input type="text" class="form-control form-control-sm" placeholder="Type a country and press Enter..." @keydown="handleCountryInputKeydown(consultant, $event)" @blur="addCountryFromInput(consultant, $event)" />
+                    <input type="text" class="form-control form-control-sm" :placeholder="settingsStore.t('adminConsultants.countryPlaceholder')" @keydown="handleCountryInputKeydown(consultant, $event)" @blur="addCountryFromInput(consultant, $event)" />
                   </div>
-                  <small class="muted">Press Enter or comma to add a region.</small>
+                  <small class="muted">{{ settingsStore.t('adminConsultants.countryHint') }}</small>
                 </label>
 
                 <label>
-                  <span>Public bio</span>
-                  <textarea class="form-control" rows="4" :value="consultant.consultantBio || ''" placeholder="Short introduction shown to students before booking." @change="saveBio(consultant.id, $event.target.value)"></textarea>
+                  <span>{{ settingsStore.t('profile.consultantBio') }}</span>
+                  <textarea class="form-control" rows="4" :value="consultant.consultantBio || ''" :placeholder="settingsStore.t('adminConsultants.bioPlaceholder')" @change="saveBio(consultant.id, $event.target.value)"></textarea>
                 </label>
               </div>
 
               <div class="consultant-footer">
-                <span>{{ consultant.assignedConsultations?.length || 0 }} assigned consultations</span>
+                <span>{{ settingsStore.t('adminConsultants.assignedConsultations', { count: consultant.assignedConsultations?.length || 0 }) }}</span>
                 <div class="row-actions">
-                  <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(consultant, 'admin')">Make admin</button>
-                  <button class="btn btn-sm btn-outline-danger" type="button" @click="changeUserRole(consultant, 'student')">Make student</button>
+                  <button class="btn btn-sm btn-outline-dark" type="button" @click="changeUserRole(consultant, 'admin')">{{ settingsStore.t('adminUsers.makeAdmin') }}</button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" @click="changeUserRole(consultant, 'student')">{{ settingsStore.t('adminUsers.makeStudent') }}</button>
                 </div>
               </div>
             </article>
@@ -114,8 +114,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useSettingsStore } from '@/stores/settings'
 import api from '@/api'
 
+const settingsStore = useSettingsStore()
 const loading = ref(true)
 const students = ref([])
 const consultants = ref([])
@@ -167,7 +169,7 @@ async function promoteConsultant() {
 
 async function changeUserRole(user, role) {
   const name = userName(user)
-  if (!confirm(`Change ${name} to ${role} role?`)) return
+  if (!confirm(settingsStore.t('adminUsers.confirmRole', { name, role }))) return
 
   await api.patch(`/api/admin/users/${user.id}/role`, { role })
   await Promise.all([fetchStudents(), fetchConsultants()])
@@ -221,7 +223,7 @@ function assignedCountryList(consultant) {
 
 function countryList(consultant) {
   const countries = assignedCountryList(consultant)
-  return countries.length ? countries : ['Unassigned']
+  return countries.length ? countries : [settingsStore.t('adminConsultations.unassigned')]
 }
 </script>
 

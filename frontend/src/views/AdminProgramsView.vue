@@ -3,74 +3,74 @@
     <div class="container">
       <header class="admin-header">
         <div>
-          <p class="eyebrow mb-2">Program Management</p>
-          <h1 class="section-heading mb-1">Manage programs and student targeting</h1>
+          <p class="eyebrow mb-2">{{ settingsStore.t('adminPrograms.kicker') }}</p>
+          <h1 class="section-heading mb-1">{{ settingsStore.t('adminPrograms.title') }}</h1>
           <p class="section-subheading mb-0">
-            Create programs, edit card details, and send matched recommendations to students.
+            {{ settingsStore.t('adminPrograms.subtitle') }}
           </p>
         </div>
         <RouterLink to="/admin" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-          <i class="bi bi-arrow-left me-1"></i>Admin overview
+          <i class="bi bi-arrow-left me-1"></i>{{ settingsStore.t('admin.common.overview') }}
         </RouterLink>
       </header>
 
-      <div v-if="loading" class="panel loading-panel">Loading programs workspace...</div>
+      <div v-if="loading" class="panel loading-panel">{{ settingsStore.t('adminPrograms.loading') }}</div>
 
       <section v-else class="program-workspace">
         <aside class="panel program-editor-panel">
           <div class="panel-heading">
             <div>
-              <h2>{{ editingProgramId ? 'Edit program' : 'Add program' }}</h2>
-              <p class="panel-note">Program details appear on public cards and matching emails.</p>
+              <h2>{{ editingProgramId ? settingsStore.t('adminPrograms.editProgram') : settingsStore.t('adminPrograms.addProgram') }}</h2>
+              <p class="panel-note">{{ settingsStore.t('adminPrograms.panelNote') }}</p>
             </div>
             <button v-if="editingProgramId" class="text-button" type="button" @click="resetProgramForm">
-              New
+              {{ settingsStore.t('adminPrograms.new') }}
             </button>
           </div>
 
           <form class="program-form" @submit.prevent="saveProgram">
             <div class="form-grid">
-              <label><span>Title</span><input v-model="programForm.title" class="form-control" required /></label>
-              <label><span>Institution</span><input v-model="programForm.institution" class="form-control" required /></label>
-              <label><span>Country</span><input v-model="programForm.country" class="form-control" required /></label>
-              <label><span>City</span><input v-model="programForm.city" class="form-control" /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.title') }}</span><input v-model="programForm.title" class="form-control" required /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.institution') }}</span><input v-model="programForm.institution" class="form-control" required /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.country') }}</span><input v-model="programForm.country" class="form-control" required /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.city') }}</span><input v-model="programForm.city" class="form-control" /></label>
               <label>
-                <span>Type</span>
+                <span>{{ settingsStore.t('adminPrograms.field.type') }}</span>
                 <select v-model="programForm.type" class="form-select" required>
                   <option v-for="type in programTypes" :key="type" :value="type">{{ type }}</option>
                 </select>
               </label>
-              <label><span>Duration</span><input v-model="programForm.durationMonths" class="form-control" type="number" /></label>
-              <label><span>Tuition</span><input v-model="programForm.tuitionFee" class="form-control" type="number" step="0.01" /></label>
-              <label><span>Currency</span><input v-model="programForm.currency" class="form-control" maxlength="3" /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.duration') }}</span><input v-model="programForm.durationMonths" class="form-control" type="number" /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.tuition') }}</span><input v-model="programForm.tuitionFee" class="form-control" type="number" step="0.01" /></label>
+              <label><span>{{ settingsStore.t('adminPrograms.field.currency') }}</span><input v-model="programForm.currency" class="form-control" maxlength="3" /></label>
             </div>
 
             <label>
-              <span>Specialization</span>
+              <span>{{ settingsStore.t('adminPrograms.field.specialization') }}</span>
               <textarea v-model="programForm.specialization" class="form-control" rows="2"></textarea>
             </label>
             <label>
-              <span>Description</span>
+              <span>{{ settingsStore.t('adminPrograms.field.description') }}</span>
               <textarea v-model="programForm.description" class="form-control" rows="3"></textarea>
             </label>
-            <label><span>Website</span><input v-model="programForm.websiteUrl" class="form-control" type="url" /></label>
+            <label><span>{{ settingsStore.t('adminPrograms.field.website') }}</span><input v-model="programForm.websiteUrl" class="form-control" type="url" /></label>
 
             <div class="color-picker-field">
               <label>
-                <span>Card Color</span>
+                <span>{{ settingsStore.t('adminPrograms.field.cardColor') }}</span>
                 <div class="color-picker-row">
                   <input type="color" v-model="programForm.cardColor" class="color-input" />
                   <input type="text" v-model="programForm.cardColor" class="form-control form-control-sm" placeholder="#1a3a5c" maxlength="7" />
-                  <button v-if="programForm.cardColor" type="button" class="btn btn-sm btn-outline-secondary" @click="programForm.cardColor = ''" title="Use country default">
+                  <button v-if="programForm.cardColor" type="button" class="btn btn-sm btn-outline-secondary" @click="programForm.cardColor = ''" :title="settingsStore.t('adminPrograms.useCountryDefault')">
                     <i class="bi bi-x-lg"></i>
                   </button>
                 </div>
-                <small class="muted">Leave empty to use country-based color.</small>
+                <small class="muted">{{ settingsStore.t('adminPrograms.cardColorNote') }}</small>
               </label>
             </div>
 
             <button class="btn btn-gpe-primary w-100" type="submit" :disabled="programSaving">
-              {{ programSaving ? 'Saving...' : editingProgramId ? 'Update program' : 'Create program' }}
+              {{ programSaving ? settingsStore.t('common.saving') : editingProgramId ? settingsStore.t('adminPrograms.updateProgram') : settingsStore.t('adminPrograms.createProgram') }}
             </button>
           </form>
 
@@ -80,9 +80,9 @@
           <div class="program-list-toolbar">
             <div class="position-relative flex-grow-1">
               <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 1rem;"></i>
-              <input v-model="adminProgramSearch" type="text" class="form-control" placeholder="Search programs by title, institution, or country..." style="padding-left: 2.5rem; border-radius: 10px;" />
+              <input v-model="adminProgramSearch" type="text" class="form-control" :placeholder="settingsStore.t('adminPrograms.searchPlaceholder')" style="padding-left: 2.5rem; border-radius: 10px;" />
             </div>
-            <span class="program-count">{{ filteredAdminPrograms.length }} programs</span>
+            <span class="program-count">{{ settingsStore.t('adminPrograms.programCount', { count: filteredAdminPrograms.length }) }}</span>
           </div>
 
           <div class="grid-list scrollable-list">
@@ -93,11 +93,11 @@
                   <h2>{{ program.title }}</h2>
                 </div>
                 <p>{{ program.institution }} - {{ program.country }}</p>
-                <small>{{ program.type }} / {{ program.durationMonths || '-' }} months</small>
+                <small>{{ program.type }} / {{ program.durationMonths || '-' }} {{ settingsStore.t('programCard.monthShort') }}</small>
               </div>
               <div class="row-actions">
-                <button class="btn btn-sm btn-outline-primary" type="button" @click="editProgram(program)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteProgram(program.id)">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" type="button" @click="editProgram(program)">{{ settingsStore.t('common.edit') }}</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" @click="deleteProgram(program.id)">{{ settingsStore.t('common.delete') }}</button>
               </div>
             </article>
           </div>
@@ -107,21 +107,23 @@
       <section v-if="promotionProgram" class="program-promotion-panel">
         <div class="promotion-panel-head">
           <div>
-            <span class="promotion-kicker">Student targeting</span>
-            <h3>Promote this program</h3>
-            <p>Best student matches for <strong>{{ promotionProgram.title }}</strong></p>
+            <span class="promotion-kicker">{{ settingsStore.t('adminPrograms.promotion.kicker') }}</span>
+            <h3>{{ settingsStore.t('adminPrograms.promotion.title') }}</h3>
+            <p>{{ settingsStore.t('adminPrograms.promotion.subtitle') }} <strong>{{ promotionProgram.title }}</strong></p>
           </div>
-          <button type="button" class="text-button" @click="clearPromotionSuggestions">Clear</button>
+          <button type="button" class="text-button" @click="clearPromotionSuggestions">{{ settingsStore.t('common.clear') }}</button>
         </div>
 
         <div v-if="promotionMatches.length" class="promotion-match-list">
           <div v-if="promotionAutoSummary" class="promotion-auto-summary">
             <i class="bi bi-lightning-charge-fill"></i>
             <span>
-              Auto email: {{ promotionAutoSummary.sent }} sent,
-              {{ promotionAutoSummary.skipped }} already sent,
-              {{ promotionAutoSummary.failed }} failed
-              for matches above {{ promotionAutoSummary.threshold }}%.
+              {{ settingsStore.t('adminPrograms.promotion.autoSummary', {
+                sent: promotionAutoSummary.sent,
+                skipped: promotionAutoSummary.skipped,
+                failed: promotionAutoSummary.failed,
+                threshold: promotionAutoSummary.threshold,
+              }) }}
             </span>
           </div>
           <article v-for="match in promotionMatches" :key="match.student.id" class="promotion-match-card">
@@ -137,7 +139,7 @@
               <span v-for="reason in match.reasons" :key="reason">{{ reason }}</span>
             </div>
             <div class="promotion-student-meta">
-              <span>{{ match.student.preferredDestination || 'No destination' }}</span>
+              <span>{{ match.student.preferredDestination || settingsStore.t('adminPrograms.promotion.noDestination') }}</span>
               <span>{{ studentLevelLabel(match.student.preferredStudyLevel) }}</span>
               <span>{{ formatBudget(match.student) }}</span>
             </div>
@@ -156,8 +158,7 @@
         </div>
 
         <div v-else class="promotion-empty">
-          No strong student matches yet. This usually means students have not completed
-          destination, study level, or budget details.
+          {{ settingsStore.t('adminPrograms.promotion.empty') }}
         </div>
       </section>
     </div>
@@ -268,7 +269,7 @@ function editProgram(program) {
 }
 
 async function deleteProgram(id) {
-  if (!confirm('Delete this program?')) return
+  if (!confirm(settingsStore.t('adminPrograms.confirmDelete'))) return
   await api.delete(`/api/admin/programs/${id}`)
   programs.value = programs.value.filter((program) => program.id !== id)
 }
@@ -316,9 +317,9 @@ function isPromotionSent(student) {
 }
 
 function promotionButtonLabel(student) {
-  if (isPromotionSending(student)) return 'Sending...'
-  if (isPromotionSent(student)) return 'Sent'
-  return 'Send email'
+  if (isPromotionSending(student)) return settingsStore.t('adminPrograms.promotion.sending')
+  if (isPromotionSent(student)) return settingsStore.t('adminPrograms.promotion.sent')
+  return settingsStore.t('adminPrograms.promotion.sendEmail')
 }
 
 async function sendPromotionEmail(match) {
@@ -338,7 +339,7 @@ async function sendPromotionEmail(match) {
     promotionSentKeys.value = [...promotionSentKeys.value, key]
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || 'Failed to send promotion email.')
+    alert(error.response?.data?.message || settingsStore.t('adminPrograms.promotion.sendFailed'))
   } finally {
     promotionSendingKeys.value = promotionSendingKeys.value.filter((item) => item !== key)
   }
@@ -350,26 +351,26 @@ function scoreStudentForProgram(student, program) {
 
   if (sameText(student.preferredDestination, program.country)) {
     rawScore += 30
-    reasons.push('Destination match')
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonDestination'))
   }
 
   const preferredType = studyLevelToProgramType(student.preferredStudyLevel)
   if (preferredType && sameText(preferredType, program.type)) {
     rawScore += 28
-    reasons.push('Study level match')
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonLevel'))
   }
 
   const budgetScore = programBudgetScore(student, program)
   if (budgetScore === 'within') {
     rawScore += 24
-    reasons.push('Within budget')
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonBudget'))
   } else if (budgetScore === 'near') {
     rawScore += 12
-    reasons.push('Near budget')
+    reasons.push(settingsStore.t('dashboard.recommendations.reasonNearBudget'))
   }
 
   if (reasons.length === 0 && hasCompletePromotionProfile(student)) {
-    reasons.push('Profile complete')
+    reasons.push(settingsStore.t('adminPrograms.promotion.profileComplete'))
   }
 
   return {
@@ -412,7 +413,7 @@ function studyLevelToProgramType(levelKey) {
 }
 
 function studentLevelLabel(levelKey) {
-  return levelKey ? settingsStore.t(levelKey) : 'No level'
+  return levelKey ? settingsStore.t(levelKey) : settingsStore.t('adminPrograms.promotion.noLevel')
 }
 
 function normalizeText(value) {

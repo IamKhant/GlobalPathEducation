@@ -23,6 +23,7 @@ export const useProgramStore = defineStore('programs', () => {
   const loading = ref(false)
   const error = ref('')
   const translationsByProgramLocale = ref({})
+  const translationRequests = {}
 
   function activeParams(page = 1, extraParams = {}) {
     const params = {
@@ -133,6 +134,28 @@ export const useProgramStore = defineStore('programs', () => {
     }
   }
 
+  async function ensureProgramTranslation(programId, locale) {
+    const normalizedLocale = locale?.trim().toUpperCase()
+    if (!programId || !normalizedLocale || normalizedLocale === 'EN') return null
+
+    const key = translationKey(programId, normalizedLocale)
+    if (translationsByProgramLocale.value[key]) return translationsByProgramLocale.value[key]
+    if (translationRequests[key]) return translationRequests[key]
+
+    translationRequests[key] = (async () => {
+      const cachedTranslation = await fetchProgramTranslation(programId, normalizedLocale)
+      if (cachedTranslation) return cachedTranslation
+
+      return translateProgram(programId, normalizedLocale)
+    })()
+
+    try {
+      return await translationRequests[key]
+    } finally {
+      delete translationRequests[key]
+    }
+  }
+
   function setFilter(key, value) {
     if (key in filters.value) {
       filters.value[key] = value
@@ -166,6 +189,7 @@ export const useProgramStore = defineStore('programs', () => {
     fetchMeta,
     fetchProgramTranslation,
     translateProgram,
+    ensureProgramTranslation,
     setFilter,
     resetFilters,
   }
