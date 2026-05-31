@@ -153,6 +153,12 @@ export const uiText = {
   'auth.demoAdmin': 'Admin',
   'auth.demoConsultant': 'Consultant',
   'auth.demoStudent': 'Student',
+  'auth.demoEmail': 'Email',
+  'auth.demoEmails': 'Emails',
+  'auth.demoAccounts': 'Accounts',
+  'auth.demoPassword': 'Password',
+  'auth.studentEmailTestingNote':
+    'To test program promotion emails, sign up as a student with your own email address instead.',
 
   'bookmarks.title': 'Saved Programs',
   'bookmarks.savedCount': '{count} programs saved',

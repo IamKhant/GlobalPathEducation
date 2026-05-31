@@ -10,27 +10,51 @@
         sign-up-url="/sign-up"
         fallback-redirect-url="/dashboard"
       />
+    </div>
 
-      <div class="demo-credentials">
-        <div class="demo-credentials-head">
-          <i class="bi bi-key"></i>
-          <span>{{ settingsStore.t('auth.demoCredentials') }}</span>
-        </div>
-        <div class="demo-credentials-list">
-          <div class="demo-credential-row">
-            <strong>{{ settingsStore.t('auth.demoAdmin') }}</strong>
+    <div class="demo-credentials animate-in">
+      <div class="demo-credentials-head">
+        <i class="bi bi-key"></i>
+        <span>{{ settingsStore.t('auth.demoCredentials') }}</span>
+      </div>
+      <div class="demo-credentials-list">
+        <div class="demo-credential-row">
+          <strong>{{ settingsStore.t('auth.demoAdmin') }}</strong>
+          <div class="credential-line">
+            <span>{{ settingsStore.t('auth.demoEmail') }}</span>
             <code>admin@globalpath.com</code>
+          </div>
+          <div class="credential-line">
+            <span>{{ settingsStore.t('auth.demoPassword') }}</span>
             <code>iamadmin</code>
           </div>
-          <div class="demo-credential-row">
-            <strong>{{ settingsStore.t('auth.demoConsultant') }}</strong>
-            <code>khantzinkoaustralia@gmail.com</code>
-            <code>iamconsultant</code>
+        </div>
+        <div class="demo-credential-row">
+          <strong>{{ settingsStore.t('auth.demoConsultant') }}</strong>
+          <div class="credential-line credential-line-stack">
+            <span>{{ settingsStore.t('auth.demoEmails') }}</span>
+            <code>auconsultant@globalpath.com</code>
+            <code>euconsultant@globalpath.com</code>
+            <code>asianconsultant@globalpath.com</code>
           </div>
-          <div class="demo-credential-row">
-            <strong>{{ settingsStore.t('auth.demoStudent') }}</strong>
-            <code>studentthree@gmail.com</code>
-            <code>iamstudent</code>
+          <div class="credential-line">
+            <span>{{ settingsStore.t('auth.demoPassword') }}</span>
+            <code>consultant</code>
+          </div>
+        </div>
+        <div class="demo-credential-row">
+          <strong>{{ settingsStore.t('auth.demoStudent') }}</strong>
+          <p class="credential-note">
+            <i class="bi bi-envelope-check"></i>
+            <span>{{ settingsStore.t('auth.studentEmailTestingNote') }}</span>
+          </p>
+          <div class="credential-line">
+            <span>{{ settingsStore.t('auth.demoAccounts') }}</span>
+            <code>studentone@globalpath.com - studentten@globalpath.com</code>
+          </div>
+          <div class="credential-line">
+            <span>{{ settingsStore.t('auth.demoPassword') }}</span>
+            <code>student</code>
           </div>
         </div>
       </div>
@@ -51,6 +75,7 @@ const settingsStore = useSettingsStore()
   padding: 4rem 1rem;
   background: #f8fafc;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -113,14 +138,19 @@ const settingsStore = useSettingsStore()
 }
 
 .demo-credentials {
-  width: 100%;
-  margin-top: 1rem;
+  position: absolute;
+  top: calc(50% - 300px);
+  left: calc(50% + 270px);
+  width: min(360px, calc(50vw - 300px));
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
   padding: 1rem;
   border: 1px solid #e5edf7;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   text-align: left;
+  z-index: 1;
 }
 
 .demo-credentials-head {
@@ -164,5 +194,63 @@ const settingsStore = useSettingsStore()
   background: #e2e8f0;
   color: #0f172a;
   font-size: 0.78rem;
+}
+
+.credential-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.credential-line-stack {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.credential-line span {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.credential-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid #facc15;
+  border-radius: 9px;
+  background: #fffbeb;
+  color: #854d0e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.credential-note i {
+  flex-shrink: 0;
+  color: #d97706;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 1199.98px) {
+  .auth-page {
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .demo-credentials {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(100%, 480px);
+    max-height: none;
+    margin-top: 1rem;
+    overflow-y: visible;
+    transform: none;
+  }
 }
 </style>

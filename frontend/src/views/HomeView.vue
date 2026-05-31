@@ -1113,6 +1113,7 @@ onMounted(fetchFeaturedPrograms)
   border-radius: 30px;
   padding: 2px;
   background: linear-gradient(135deg, rgba(96, 165, 250, 0.4), rgba(124, 58, 237, 0.3), rgba(244, 164, 27, 0.3));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
