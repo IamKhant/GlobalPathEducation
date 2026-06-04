@@ -222,13 +222,16 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { useUser } from '@clerk/vue'
+import { useAuth, useUser } from '@clerk/vue'
 import { useSettingsStore } from '@/stores/settings'
+import { useUserStore } from '@/stores/user'
 import api from '@/api'
 
 const route = useRoute()
+const { isSignedIn } = useAuth()
 const { user } = useUser()
 const settingsStore = useSettingsStore()
+const userStore = useUserStore()
 
 const programs = ref([])
 const consultants = ref([])
@@ -259,9 +262,10 @@ onMounted(async () => {
   consultantsLoading.value = false
   if (route.query.programId) form.value.programId = parseInt(route.query.programId)
   if (route.query.consultantId) form.value.consultantId = parseInt(route.query.consultantId)
-  if (user.value) {
-    form.value.name = `${user.value.firstName || ''} ${user.value.lastName || ''}`.trim()
-    form.value.email = user.value.primaryEmailAddress?.emailAddress || ''
+
+  if (isSignedIn.value) {
+    const profile = userStore.profile || await userStore.fetchProfile()
+    hydrateContactDetails(profile)
   }
 })
 
@@ -341,6 +345,15 @@ function consultantBio(consultant) {
   return consultant.consultantBio || 'Supports students with program selection, destination planning, and consultation preparation.'
 }
 
+function hydrateContactDetails(profile = null) {
+  const clerkName = `${user.value?.firstName || ''} ${user.value?.lastName || ''}`.trim()
+  const profileName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ')
+
+  form.value.name = profileName || clerkName || form.value.name
+  form.value.email = profile?.email || user.value?.primaryEmailAddress?.emailAddress || form.value.email
+  form.value.phone = profile?.phone || form.value.phone
+}
+
 async function submit() {
   submitting.value = true
   error.value = ''
@@ -369,6 +382,7 @@ function reset() {
     consultantId: '',
     message: '',
   }
+  hydrateContactDetails(userStore.profile)
 }
 
 </script>
