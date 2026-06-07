@@ -58,6 +58,17 @@
           <i class="bi bi-chevron-down"></i>
         </button>
       </div>
+
+      <div v-if="userStore.compareNotice" class="compare-notice" role="status">
+        <span>{{ userStore.compareNotice }}</span>
+        <button
+          type="button"
+          :aria-label="settingsStore.t('common.dismiss')"
+          @click="userStore.clearCompareNotice()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </template>
   </div>
 </template>
@@ -165,6 +176,32 @@ const emptySlots = computed(() => Math.max(0, 3 - userStore.compareList.length))
   align-items: center;
   gap: 0.55rem;
   flex-shrink: 0;
+}
+
+.compare-notice {
+  align-items: center;
+  background: rgba(244, 164, 27, 0.16);
+  border: 1px solid rgba(244, 164, 27, 0.36);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.7rem;
+}
+
+.compare-notice button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
 }
 
 .compare-bar-summary {

@@ -1,5 +1,13 @@
 <template>
-  <div class="program-card h-100" @click="$router.push(`/programs/${program.id}`)">
+  <div
+    class="program-card h-100"
+    role="link"
+    tabindex="0"
+    :aria-label="settingsStore.t('programCard.openProgram', { title: program.title })"
+    @click="navigateToProgram"
+    @keydown.enter.prevent="navigateToProgram"
+    @keydown.space.prevent="navigateToProgram"
+  >
     <!-- Country color banner -->
     <div class="card-banner" :style="{ background: countryGradient }">
       <div class="card-banner-flag">{{ countryFlag }}</div>
@@ -9,9 +17,15 @@
       <div class="card-actions" @click.stop>
         <button
           v-if="isSignedIn && !userStore.isStaff"
+          type="button"
           class="card-action-btn"
           :class="{ active: userStore.bookmarkedIds.has(program.id) }"
           @click="userStore.toggleBookmark(program)"
+          :aria-label="
+            userStore.bookmarkedIds.has(program.id)
+              ? settingsStore.t('programCard.removeBookmark')
+              : settingsStore.t('programCard.saveProgram')
+          "
           :title="
             userStore.bookmarkedIds.has(program.id)
               ? settingsStore.t('programCard.removeBookmark')
@@ -26,9 +40,11 @@
         </button>
         <button
           v-if="!userStore.isStaff"
+          type="button"
           class="card-action-btn"
           :class="{ active: isInCompare }"
           @click="toggleCompare"
+          :aria-label="settingsStore.t('programCard.addCompare')"
           :title="settingsStore.t('programCard.addCompare')"
         >
           <i class="bi bi-bar-chart-steps"></i>
@@ -75,6 +91,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuth } from '@clerk/vue'
+import { useRouter } from 'vue-router'
 import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
@@ -83,6 +100,7 @@ import { getCountryGradient } from '@/utils/countryStyles'
 
 const props = defineProps({ program: { type: Object, required: true } })
 const { isSignedIn } = useAuth()
+const router = useRouter()
 const programStore = useProgramStore()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
@@ -110,6 +128,10 @@ watch(
 function toggleCompare() {
   if (isInCompare.value) userStore.removeFromCompare(props.program.id)
   else userStore.addToCompare(props.program)
+}
+
+function navigateToProgram() {
+  router.push(`/programs/${props.program.id}`)
 }
 
 const countryGradient = computed(() => {

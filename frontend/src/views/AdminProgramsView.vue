@@ -115,6 +115,17 @@
         </div>
 
         <div v-if="promotionMatches.length" class="promotion-match-list">
+          <div v-if="promotionError" class="promotion-error" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ promotionError }}</span>
+            <button
+              type="button"
+              :aria-label="settingsStore.t('common.dismiss')"
+              @click="promotionError = ''"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
           <div v-if="promotionAutoSummary" class="promotion-auto-summary">
             <i class="bi bi-lightning-charge-fill"></i>
             <span>
@@ -183,6 +194,7 @@ const promotionMatches = ref([])
 const promotionAutoSummary = ref(null)
 const promotionSendingKeys = ref([])
 const promotionSentKeys = ref([])
+const promotionError = ref('')
 const programTypes = ['Bachelor', 'Diploma', 'Master', 'Bootcamp']
 
 const emptyProgramForm = {
@@ -285,12 +297,14 @@ function clearPromotionSuggestions() {
   promotionAutoSummary.value = null
   promotionSendingKeys.value = []
   promotionSentKeys.value = []
+  promotionError.value = ''
 }
 
 function showPromotionSuggestions(program) {
   promotionProgram.value = program
   promotionAutoSummary.value = program.autoPromotions || null
   promotionSendingKeys.value = []
+  promotionError.value = ''
   promotionMatches.value = students.value
     .map((student) => scoreStudentForProgram(student, program))
     .filter((match) => match.score >= 50)
@@ -339,7 +353,8 @@ async function sendPromotionEmail(match) {
     promotionSentKeys.value = [...promotionSentKeys.value, key]
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || settingsStore.t('adminPrograms.promotion.sendFailed'))
+    promotionError.value =
+      error.response?.data?.message || settingsStore.t('adminPrograms.promotion.sendFailed')
   } finally {
     promotionSendingKeys.value = promotionSendingKeys.value.filter((item) => item !== key)
   }
@@ -681,6 +696,29 @@ function formatBudget(user) {
 .promotion-auto-summary i {
   color: #f97316;
   flex: 0 0 auto;
+}
+
+.promotion-error {
+  align-items: flex-start;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.55rem;
+  grid-column: 1 / -1;
+  line-height: 1.45;
+  padding: 0.75rem 0.85rem;
+}
+
+.promotion-error button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  margin-left: auto;
+  padding: 0;
 }
 
 .promotion-match-top {

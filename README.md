@@ -1,6 +1,6 @@
 # GlobalPath Education
 
-An education agency web application for students to explore and compare IT programs worldwide. Built with Vue 3 + Bootstrap 5 (frontend) and Express + Prisma + Supabase (backend), with Clerk for authentication.
+An education agency web application for students to explore and compare IT programs worldwide. Built with Vue 3 + Bootstrap 5 (frontend) and Express + Prisma + Supabase (backend), with Clerk for authentication, DeepL translation, Frankfurter currency conversion, and Resend-powered program promotion emails.
 
 ## Project Structure
 
@@ -8,8 +8,8 @@ An education agency web application for students to explore and compare IT progr
 GlobalPathEducation/
 ├── backend/
 │   ├── prisma/
-│   │   ├── schema.prisma       # DB models: Program, User, Bookmark, Consultation
-│   │   └── seed.js             # 48 programs seeded from spreadsheet
+│   │   ├── schema.prisma       # DB models: Program, User, Bookmark, Consultation, Promotion
+│   │   └── seed.js             # 59 programs seeded from spreadsheet data
 │   └── src/
 │       ├── index.js            # Express app entry
 │       ├── middleware/
@@ -31,7 +31,7 @@ GlobalPathEducation/
         ├── stores/
         │   ├── programs.js     # Pinia: program list, filters, pagination
         │   └── user.js         # Pinia: bookmarks, compare list
-        ├── router/index.js     # 9 routes (2 protected by auth)
+        ├── router/index.js     # 22 routes with public, student, consultant, and admin areas
         └── views/
             ├── HomeView.vue         # Landing page with hero, search, featured
             ├── ProgramsView.vue     # Browse with sidebar filters + pagination
@@ -44,7 +44,7 @@ GlobalPathEducation/
             └── SignUpView.vue
 ```
 
-## Pages (8 required for assignment)
+## Main Website Pages
 
 | # | Page | Route | Auth |
 |---|------|--------|------|
@@ -55,7 +55,21 @@ GlobalPathEducation/
 | 5 | Saved Programs | `/bookmarks` | ✅ Required |
 | 6 | Consultation Booking | `/consult` | Public |
 | 7 | User Dashboard | `/dashboard` | ✅ Required |
-| 8 | Sign In / Sign Up | `/sign-in`, `/sign-up` | Public |
+| 8 | Consultants Directory | `/consultants` | Public |
+| 9 | Student Onboarding | `/onboarding` | Student |
+| 10 | Profile | `/profile` | Authenticated |
+| 11 | Consultant Dashboard | `/consultant` | Consultant |
+| 12 | Consultant Consultations | `/consultant/consultations` | Consultant |
+| 13 | Consultant Students | `/consultant/students` | Consultant |
+| 14 | Admin Dashboard | `/admin` | Admin |
+| 15 | Admin Programs | `/admin/programs` | Admin |
+| 16 | Admin Homepage | `/admin/homepage` | Admin |
+| 17 | Admin Consultations | `/admin/consultations` | Admin |
+| 18 | Admin Students | `/admin/students` | Admin |
+| 19 | Admin Consultants | `/admin/consultants` | Admin |
+| 20 | Admin Admins | `/admin/admins` | Admin |
+| 21 | Sign In | `/sign-in` | Public |
+| 22 | Sign Up | `/sign-up` | Public |
 
 ## Setup
 
@@ -82,6 +96,9 @@ npm install
 ```
 DATABASE_URL="postgresql://..."   # From Supabase → Settings → Database
 CLERK_SECRET_KEY="sk_test_..."    # From Clerk dashboard
+DEEPL_API_KEY="..."               # Backend-only translation key
+RESEND_API_KEY="..."              # Backend-only email key
+EMAIL_FROM="GlobalPath Education <onboarding@resend.dev>"
 PORT=3000
 FRONTEND_URL="http://localhost:5173"
 ```
@@ -98,7 +115,7 @@ VITE_API_BASE_URL="http://localhost:3000"
 cd backend
 npx prisma generate
 npx prisma db push          # Creates tables in Supabase
-npm run seed                # Loads all 48 programs
+npm run seed                # Loads the program dataset
 ```
 
 ### 4. Run
@@ -128,21 +145,49 @@ Open http://localhost:5173
 | PATCH | `/api/consultations/:id/cancel` | ✅ | Cancel consultation |
 | POST | `/api/users/sync` | ✅ | Sync Clerk user to DB |
 | GET | `/api/users/me` | ✅ | Get current user |
+| PATCH | `/api/users/me` | ✅ | Update onboarding/profile data |
+| POST | `/api/translations/ui` | - | Translate and cache UI text through DeepL |
+| POST | `/api/programs/:id/translation` | - | Translate and cache program content through DeepL |
+| GET | `/api/admin/dashboard` | Admin | Admin statistics and recent activity |
+| POST | `/api/admin/programs` | Admin | Create program and trigger matched-student promotions |
+| PATCH | `/api/admin/programs/:id` | Admin | Update program and trigger matched-student promotions |
+| POST | `/api/admin/program-promotions/send` | Admin | Manually send promotion email through Resend |
 
 ## Program Data
 
-48 programs across 8 countries:
-- **Australia** (20) — University of Melbourne, Sydney, Monash, ANU, UNSW, UQ, UTS, TAFE NSW, General Assembly, Le Wagon, and more
-- **Canada** (7) — UBC, University of Waterloo, Toronto Metropolitan, Ontario Tech, Memorial University
-- **Germany** (4) — TU Munich, RWTH Aachen, University of Augsburg, Frankfurt School
-- **Ireland** (5) — University of Galway, UCD, UCC, University of Limerick, Munster Tech
-- **Japan** (3) — Kyoto University, Waseda University, University of Tsukuba
-- **Netherlands** (1) — Utrecht University
-- **New Zealand** (2) — University of Auckland, University of Waikato
-- **Spain** (1) — UPC Barcelona
+59 programs across 9 countries:
+- **Australia**
+- **Canada**
+- **Germany**
+- **Ireland**
+- **Japan**
+- **Malaysia**
+- **Netherlands**
+- **New Zealand**
+- **Spain**
 
-Program types: Masters degrees and Bootcamps
+Program types: Bachelor, Diploma, Master, and Bootcamp.
+
+## Advanced Features
+
+- First-time student onboarding collects destination, study level, budget, and profile details before opening the dashboard.
+- The dashboard suggests programs using the student's onboarding profile and shows match percentages with reasons.
+- Admin program creation and updates automatically email students whose match score is above 80%.
+- Admins can manually email lower-score matches from the promotion panel.
+- Resend sends promotion emails and stores provider status in the database.
+- DeepL translations are requested through backend routes and cached in the database for faster repeated use.
+- Frankfurter exchange rates support live tuition currency conversion.
+
+## Deployment
+
+- Frontend: Vercel
+- Backend API: Render
+- Database: Supabase PostgreSQL
+- Authentication: Clerk
+- Email: Resend
+- Translation: DeepL
 
 
-## Credit to owners of the original spreadsheet data, and to the
-currency API from - https://frankfurter.dev/
+## Credits
+
+Credit to the owners of the original spreadsheet data and to the Frankfurter currency API: https://frankfurter.dev/

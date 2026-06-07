@@ -302,16 +302,16 @@ import { useProgramStore } from '@/stores/programs'
 import { useSettingsStore } from '@/stores/settings'
 import api from '@/api'
 
-import heroImage from '@/assets/hero/study-abroad-hero.png'
+import heroImage from '@/assets/hero/study-abroad-hero.webp'
 
-import australiaImg from '@/assets/countries/australia.jpg'
-import canadaImg from '@/assets/countries/canada.jpg'
-import germanyImg from '@/assets/countries/germany.jpg'
-import irelandImg from '@/assets/countries/ireland.jpg'
-import japanImg from '@/assets/countries/japan.jpg'
-import netherlandsImg from '@/assets/countries/netherlands.jpg'
-import newZealandImg from '@/assets/countries/newzealand.jpg'
-import spainImg from '@/assets/countries/spain.jpg'
+import australiaImg from '@/assets/countries/australia.webp'
+import canadaImg from '@/assets/countries/canada.webp'
+import germanyImg from '@/assets/countries/germany.webp'
+import irelandImg from '@/assets/countries/ireland.webp'
+import japanImg from '@/assets/countries/japan.webp'
+import netherlandsImg from '@/assets/countries/netherlands.webp'
+import newZealandImg from '@/assets/countries/newzealand.webp'
+import spainImg from '@/assets/countries/spain.webp'
 
 const router = useRouter()
 const programStore = useProgramStore()

@@ -1,6 +1,7 @@
 const express = require('express');
 const { getAuth } = require('@clerk/express');
 const { getOrCreateCurrentUser, requireApiAuth } = require('../middleware/auth');
+const { validateConsultationPayload } = require('../utils/consultationValidation');
 
 const router = express.Router();
 
@@ -33,20 +34,51 @@ router.post('/', async (req, res) => {
   try {
     const auth = getAuth(req);
     const user = auth.userId ? await getOrCreateCurrentUser(req) : null;
-    const programId = req.body.programId ? Number.parseInt(req.body.programId, 10) : null;
-    const consultantId = req.body.consultantId ? Number.parseInt(req.body.consultantId, 10) : null;
+    const validation = validateConsultationPayload(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({
+        message: validation.error,
+      });
+    }
+
+    const { data } = validation;
+
+    const [program, consultant] = await Promise.all([
+      data.programId
+        ? req.prisma.program.findUnique({ where: { id: data.programId }, select: { id: true } })
+        : null,
+      data.consultantId
+        ? req.prisma.user.findFirst({
+            where: { id: data.consultantId, role: 'consultant' },
+            select: { id: true },
+          })
+        : null,
+    ]);
+
+    if (data.programId && !program) {
+      return res.status(400).json({
+        message: 'Selected program was not found',
+      });
+    }
+
+    if (data.consultantId && !consultant) {
+      return res.status(400).json({
+        message: 'Selected consultant was not found',
+      });
+    }
 
     const consultation = await req.prisma.consultation.create({
       data: {
         userId: user?.id || null,
-        programId,
-        consultantId,
-        fullName: req.body.fullName || req.body.name,
-        email: req.body.email,
-        phone: req.body.phone || null,
-        preferredCountry: req.body.preferredCountry || null,
-        studyLevel: req.body.studyLevel || null,
-        message: req.body.message || null,
+        programId: data.programId,
+        consultantId: data.consultantId,
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        preferredCountry: data.preferredCountry,
+        studyLevel: data.studyLevel,
+        message: data.message,
         status: 'pending',
       },
       include: {

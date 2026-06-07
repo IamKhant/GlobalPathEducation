@@ -10,6 +10,7 @@ export const useUserStore = defineStore('user', () => {
   const profileSaving = ref(false)
   const bookmarks = ref([])
   const compareList = ref(loadCompareList())
+  const compareNotice = ref('')
 
   function loadCompareList() {
     try {
@@ -135,10 +136,11 @@ export const useUserStore = defineStore('user', () => {
     if (alreadyExists) return
 
     if (compareList.value.length >= 3) {
-      alert('You can compare up to 3 programs at a time.')
+      compareNotice.value = 'You can compare up to 3 programs at a time.'
       return
     }
 
+    compareNotice.value = ''
     compareList.value.push(program)
     saveCompareList()
   }
@@ -150,7 +152,12 @@ export const useUserStore = defineStore('user', () => {
 
   function clearCompareList() {
     compareList.value = []
+    compareNotice.value = ''
     saveCompareList()
+  }
+
+  function clearCompareNotice() {
+    compareNotice.value = ''
   }
 
   return {
@@ -164,6 +171,7 @@ export const useUserStore = defineStore('user', () => {
     isStudentProfileComplete,
     bookmarks,
     compareList,
+    compareNotice,
     bookmarkedIds,
     fetchProfile,
     updateProfile,
@@ -174,5 +182,6 @@ export const useUserStore = defineStore('user', () => {
     addToCompare,
     removeFromCompare,
     clearCompareList,
+    clearCompareNotice,
   }
 })
