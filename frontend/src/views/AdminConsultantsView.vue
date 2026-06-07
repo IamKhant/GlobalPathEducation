@@ -229,7 +229,8 @@ function countryList(consultant) {
 
 <style scoped>
 .admin-page { background: #f8fafc; min-height: 70vh; padding: 2rem 0 3rem; }
-.admin-header, .consultant-top, .consultant-footer { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-header, .consultant-footer { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; }
+.consultant-top { align-items: flex-start; display: flex; gap: 0.9rem; justify-content: flex-start; }
 .admin-header { margin-bottom: 1rem; }
 .eyebrow { color: #f4a41b; font-size: 0.78rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
 .section-heading { color: #0f172a; font-weight: 850; }
@@ -249,7 +250,10 @@ label > span { color: #334155; font-size: 0.78rem; font-weight: 850; }
 .promote-user-option { align-items: center; background: transparent; border: 0; border-radius: 8px; display: flex; gap: 0.6rem; padding: 0.55rem; text-align: left; width: 100%; }
 .promote-user-option:hover, .promote-user-option.selected { background: #eff6ff; }
 .avatar { align-items: center; background: #e2e8f0; border-radius: 999px; color: #475569; display: flex; flex: 0 0 34px; font-size: 0.72rem; font-weight: 850; height: 34px; justify-content: center; width: 34px; }
-.avatar.large { background: #0f172a; color: #fff; flex-basis: 44px; height: 44px; width: 44px; }
+.avatar.large { background: #0f172a; color: #fff; flex: 0 0 54px; font-size: 0.9rem; height: 54px; width: 54px; }
+.consultant-top > div:last-child { flex: 1; min-width: 0; }
+.consultant-card h2 { font-size: 1.08rem; line-height: 1.2; }
+.consultant-card p { overflow-wrap: anywhere; }
 .user-info { flex: 1; min-width: 0; }
 .user-info strong, .user-info small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .editor-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); margin-top: 1rem; }
