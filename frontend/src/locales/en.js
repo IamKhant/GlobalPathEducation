@@ -447,7 +447,7 @@ export const uiText = {
   'consult.benefit.advice.title': 'Personalized Advice',
   'consult.benefit.advice.desc': 'Tailored recommendations based on your background and goals',
   'consult.benefit.global.title': 'Global Expertise',
-  'consult.benefit.global.desc': 'In-depth knowledge of programs across 8 countries',
+  'consult.benefit.global.desc': 'In-depth knowledge of programs across 9 countries',
   'consult.benefit.scholarship.title': 'Scholarship Guidance',
   'consult.benefit.scholarship.desc': 'Learn about funding options and financial aid',
   'consult.benefit.application.title': 'Application Support',

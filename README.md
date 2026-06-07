@@ -17,8 +17,11 @@ GlobalPathEducation/
 │       └── routes/
 │           ├── programs.js     # GET /api/programs (search + filter + paginate)
 │           ├── bookmarks.js    # CRUD bookmarks (auth required)
-│           ├── consultations.js# Book & list consultations (auth required)
-│           └── users.js        # Clerk user sync
+│           ├── consultations.js# Book & list consultations
+│           ├── admin.js        # Admin dashboards, program management, promotions
+│           ├── consultant.js   # Consultant dashboards and assigned consultations
+│           ├── translations.js # DeepL-backed UI translation cache
+│           └── users.js        # Current user profile and onboarding data
 └── frontend/
     └── src/
         ├── api/index.js        # Axios with Clerk token interceptor
@@ -39,7 +42,10 @@ GlobalPathEducation/
             ├── CompareView.vue      # Side-by-side comparison table
             ├── BookmarksView.vue    # Saved programs grid
             ├── ConsultView.vue      # Consultation booking form
-            ├── DashboardView.vue    # User account, stats, history
+            ├── DashboardView.vue    # Student recommendations, stats, history
+            ├── OnboardingView.vue   # First-time student profile capture
+            ├── AdminProgramsView.vue# Admin program CRUD and promotion workflow
+            ├── ConsultantView.vue   # Consultant role dashboard
             ├── SignInView.vue
             └── SignUpView.vue
 ```
@@ -74,9 +80,11 @@ GlobalPathEducation/
 ## Setup
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20.19+ or 22.12+
 - PostgreSQL database (use Supabase)
 - Clerk account (https://clerk.com)
+- DeepL account for translation
+- Resend account for promotion emails
 
 ### 1. Clone and install
 
@@ -95,6 +103,7 @@ npm install
 **Backend** — copy `.env.example` to `.env`:
 ```
 DATABASE_URL="postgresql://..."   # From Supabase → Settings → Database
+DIRECT_URL="postgresql://..."     # Preferred by the current Prisma adapter setup
 CLERK_SECRET_KEY="sk_test_..."    # From Clerk dashboard
 DEEPL_API_KEY="..."               # Backend-only translation key
 RESEND_API_KEY="..."              # Backend-only email key
@@ -107,6 +116,7 @@ FRONTEND_URL="http://localhost:5173"
 ```
 VITE_CLERK_PUBLISHABLE_KEY="pk_test_..."   # From Clerk dashboard
 VITE_API_BASE_URL="http://localhost:3000"
+VITE_FRANKFURTER_API_URL="https://api.frankfurter.dev"
 ```
 
 ### 3. Database setup
@@ -130,7 +140,7 @@ cd frontend && npm run dev
 
 Open http://localhost:5173
 
-## API Endpoints
+## Main API Endpoints
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -143,14 +153,28 @@ Open http://localhost:5173
 | GET | `/api/consultations` | ✅ | User's consultations |
 | POST | `/api/consultations` | ✅ | Book consultation |
 | PATCH | `/api/consultations/:id/cancel` | ✅ | Cancel consultation |
-| POST | `/api/users/sync` | ✅ | Sync Clerk user to DB |
 | GET | `/api/users/me` | ✅ | Get current user |
 | PATCH | `/api/users/me` | ✅ | Update onboarding/profile data |
 | POST | `/api/translations/ui` | - | Translate and cache UI text through DeepL |
+| GET | `/api/programs/:id/translation` | - | Fetch cached program translation |
 | POST | `/api/programs/:id/translation` | - | Translate and cache program content through DeepL |
+| GET | `/api/consultants` | - | List public consultant directory |
+| GET | `/api/consultant/dashboard` | Consultant | Consultant statistics and assigned work |
+| GET | `/api/consultant/consultations` | Consultant | Consultant consultation queue |
+| PATCH | `/api/consultant/consultations/:id/status` | Consultant | Update assigned consultation status |
+| GET | `/api/consultant/students` | Consultant | View assigned student records |
 | GET | `/api/admin/dashboard` | Admin | Admin statistics and recent activity |
+| GET | `/api/admin/programs` | Admin | List programs for administration |
 | POST | `/api/admin/programs` | Admin | Create program and trigger matched-student promotions |
 | PATCH | `/api/admin/programs/:id` | Admin | Update program and trigger matched-student promotions |
+| DELETE | `/api/admin/programs/:id` | Admin | Delete a program |
+| GET | `/api/admin/consultations` | Admin | Manage consultation records |
+| PATCH | `/api/admin/consultations/:id` | Admin | Update consultation status or assignment |
+| GET | `/api/admin/students` | Admin | List student records |
+| GET | `/api/admin/consultants` | Admin | List consultant records |
+| GET | `/api/admin/admins` | Admin | List admin records |
+| PATCH | `/api/admin/users/:id/role` | Admin | Update user role |
+| PATCH | `/api/admin/ui-text` | Admin | Update cached UI text |
 | POST | `/api/admin/program-promotions/send` | Admin | Manually send promotion email through Resend |
 
 ## Program Data
@@ -191,3 +215,15 @@ Program types: Bachelor, Diploma, Master, and Bootcamp.
 ## Credits
 
 Credit to the owners of the original spreadsheet data and to the Frankfurter currency API: https://frankfurter.dev/
+
+### Image Credits
+
+- Hero study-abroad image: https://www.magnific.com/free-ai-image/3d-icon-traveling-vacation_151973479.htm
+- Australia image: Tyler Duston on Unsplash, https://unsplash.com/photos/sydney-opera-house-ZXlfq5mExMs
+- Germany image: Ansgar Scheffold on Unsplash, https://unsplash.com/photos/brown-concrete-gateway-during-daytime-mtfTz0FnwBw
+- Canada image: Alex Shutin on Unsplash, https://unsplash.com/photos/city-view-during-nighttime-photography-uhn-U0sSxFQ
+- Ireland image: Jason Murphy on Unsplash, https://unsplash.com/photos/white-and-black-concrete-building-under-blue-sky-during-daytime-rTG1TR6Ygb0
+- New Zealand image: Mitchell Henderson on Pexels, https://www.pexels.com/photo/snowcapped-mountain-range-seen-from-lake-shore-18374798/
+- Japan image: Nguyen Khac Tien on Pexels, https://www.pexels.com/photo/red-and-green-pagoda-temple-near-trees-and-mountain-12542838/
+- Spain image: Archie McNicol on Pexels, https://www.pexels.com/photo/an-aerial-view-of-barcelona-spain-18602894/
+- Netherlands image: Sevda Ozdemir on Pexels, https://www.pexels.com/photo/colorful-wooden-houses-on-piers-of-reitdiephaven-in-groningen-10795818/
