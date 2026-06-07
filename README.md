@@ -77,68 +77,174 @@ GlobalPathEducation/
 | 21 | Sign In | `/sign-in` | Public |
 | 22 | Sign Up | `/sign-up` | Public |
 
-## Setup
+## Local Setup and Run
 
 ### Prerequisites
 - Node.js 20.19+ or 22.12+
-- PostgreSQL database (use Supabase)
-- Clerk account (https://clerk.com)
-- DeepL account for translation
-- Resend account for promotion emails
+- npm
+- PostgreSQL database. This project uses Supabase PostgreSQL.
+- Clerk account for authentication.
+- DeepL API key for translation.
+- Resend API key for promotion emails.
 
-### 1. Clone and install
+> `node_modules` is not included in the submitted project. Run `npm install` in both `backend` and `frontend` before starting the app.
+
+The commands below assume you are starting from the project root folder, `GlobalPathEducation`.
+
+### 1. Open the project
 
 ```bash
-# Backend
+cd GlobalPathEducation
+```
+
+### 2. Install dependencies
+
+```bash
 cd backend
 npm install
 
-# Frontend
 cd ../frontend
 npm install
+cd ..
 ```
 
-### 2. Environment variables
+### 3. Create environment files
 
-**Backend** — copy `.env.example` to `.env`:
+Create the backend `.env` file:
+
+```bash
+cd backend
+cp .env.example .env
+cd ..
 ```
-DATABASE_URL="postgresql://..."   # From Supabase → Settings → Database
-DIRECT_URL="postgresql://..."     # Preferred by the current Prisma adapter setup
-CLERK_SECRET_KEY="sk_test_..."    # From Clerk dashboard
-DEEPL_API_KEY="..."               # Backend-only translation key
-RESEND_API_KEY="..."              # Backend-only email key
-EMAIL_FROM="GlobalPath Education <onboarding@resend.dev>"
-PORT=3000
+
+Edit `backend/.env`:
+
+```env
+DIRECT_URL="postgresql://user:password@host:5432/database"
+DATABASE_URL="postgresql://user:password@host:5432/database"
 FRONTEND_URL="http://localhost:5173"
+CLERK_SECRET_KEY="sk_test_your_key_here"
+DEEPL_API_KEY="your_deepl_key_here"
+DEEPL_API_URL="https://api-free.deepl.com/v2"
+RESEND_API_KEY="your_resend_key_here"
+EMAIL_FROM="GlobalPath Education <onboarding@resend.dev>"
 ```
 
-**Frontend** — create `.env`:
+Create the frontend `.env` file:
+
+```bash
+cd frontend
+cp .env.example .env
+cd ..
 ```
-VITE_CLERK_PUBLISHABLE_KEY="pk_test_..."   # From Clerk dashboard
+
+Edit `frontend/.env`:
+
+```env
 VITE_API_BASE_URL="http://localhost:3000"
+VITE_CLERK_PUBLISHABLE_KEY="pk_test_your_key_here"
 VITE_FRANKFURTER_API_URL="https://api.frankfurter.dev"
 ```
 
-### 3. Database setup
+Environment notes:
+- `DIRECT_URL` and `DATABASE_URL` come from Supabase.
+- `CLERK_SECRET_KEY`, `DEEPL_API_KEY`, and `RESEND_API_KEY` must stay in `backend/.env`.
+- `VITE_CLERK_PUBLISHABLE_KEY` is the only Clerk key used by the frontend.
+- For local testing, keep `FRONTEND_URL` as `http://localhost:5173`.
+
+### 4. Set up the database
 
 ```bash
 cd backend
 npx prisma generate
-npx prisma db push          # Creates tables in Supabase
-npm run seed                # Loads the program dataset
+npx prisma db push
+npm run seed
+cd ..
 ```
 
-### 4. Run
+This creates the database tables and loads the program dataset.
+
+If you need the extra Bachelor/Diploma sample programs, also run:
 
 ```bash
-# Terminal 1 — backend
-cd backend && npm run dev
-
-# Terminal 2 — frontend  
-cd frontend && npm run dev
+cd backend
+npm run seed:extra-programs
+cd ..
 ```
 
-Open http://localhost:5173
+### 5. Run the backend
+
+Open a terminal:
+
+```bash
+cd backend
+npm run dev
+```
+
+The backend should run at:
+
+```text
+http://localhost:3000
+```
+
+You can test it by opening:
+
+```text
+http://localhost:3000
+```
+
+Expected response:
+
+```json
+{
+  "message": "GlobalPath Education API is running"
+}
+```
+
+### 6. Run the frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+### 7. Local demo accounts
+
+These accounts must exist in your Clerk instance. If they do not exist yet, create them in Clerk or sign up with those emails.
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@globalpath.com` | `iamadmin` |
+| Consultant | `auconsultant@globalpath.com` | `consultant` |
+| Consultant | `euconsultant@globalpath.com` | `consultant` |
+| Consultant | `asianconsultant@globalpath.com` | `consultant` |
+| Student | `studentone@globalpath.com` to `studentten@globalpath.com` | `student` |
+
+After a user signs in for the first time, the backend creates the user record in Supabase. To test admin or consultant pages, make sure the user's `role` column in the `users` table is set correctly:
+
+```text
+admin
+consultant
+student
+```
+
+### 8. Common local issues
+
+- If the frontend loads but API data is missing, check that the backend is running on `http://localhost:3000`.
+- If authenticated API calls fail, check that the frontend and backend are using Clerk keys from the same Clerk environment.
+- If the browser blocks backend requests, check `FRONTEND_URL` in `backend/.env`.
+- If translation does not work, check `DEEPL_API_KEY` and `DEEPL_API_URL`.
+- If promotion emails do not send, check `RESEND_API_KEY` and `EMAIL_FROM`.
+- If Prisma cannot connect, check `DIRECT_URL` and `DATABASE_URL`.
 
 ## Main API Endpoints
 
